@@ -24,7 +24,17 @@ La migración `hosting_access_hardening` está preparada. Su aplicación y verif
 - `auth-login` rechaza credenciales ausentes con HTTP 401.
 - No se han creado usuarios de prueba ni modificado notas, asistencia o votos.
 
-## Mantenimiento
+## Recuperación por correo
+
+Se añadió verificación de códigos de recuperación con Supabase (`type: recovery`), reenvío con espera de un minuto y cambio de contraseña tras verificar la sesión. Se mantienen compatibles los enlaces de recuperación anteriores.
+
+La plantilla de marca está en `supabase/templates/recovery.html` y el remitente temporal autorizado es `adrianvillagomez47@gmail.com`. La configuración SMTP de Gmail fue guardada por el titular en Supabase; su contraseña de aplicación se introduce exclusivamente en ese panel. La plantilla remota se administra en Authentication → Emails → Reset password; no basta con subir el archivo a GitHub.
+
+Se configuraron la URL principal de GitHub Pages y los dos destinos exactos para confirmación (`index.html`) y recuperación (`index.html?view=reset`). La entrega real debe comprobarse con un correo solicitado por el titular; los resultados de las pruebas automáticas no prueban la entrega del proveedor.
+
+Verificaciones de esta mejora: seis pruebas automatizadas del flujo con un servicio simulado, revisión de sintaxis y revisión visual de la pantalla y el correo. No se enviaron mensajes ni se cambiaron contraseñas reales en esas pruebas.
+
+## Mantenimiento del servicio
 
 - GitHub Pages publica únicamente la carpeta `web/` mediante el flujo de Actions.
 - Los secretos de servidor permanecen en Supabase.

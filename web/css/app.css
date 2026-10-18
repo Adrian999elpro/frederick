@@ -677,3 +677,5 @@ select option, select optgroup { background: var(--surface); color: var(--text);
 .badge.rank.r3 { color: #fff; }
 .first  .podium-step { color: #2b1700; text-shadow: none; }
 .second .podium-step { color: #0f172a; text-shadow: none; }
+.recovery-badge { display: inline-grid; place-items: center; width: 48px; height: 48px; margin-bottom: 16px; border-radius: 16px; color: #ffcf61; background: rgba(168, 23, 23, .18); font-size: 24px; }
+.recovery-code { font-size: 1.55rem; letter-spacing: .22em; font-variant-numeric: tabular-nums; text-align: center; }

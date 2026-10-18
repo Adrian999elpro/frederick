@@ -111,15 +111,36 @@
       <section id="v-forgot" hidden>
         <div class="form-header">
           <h2>Recuperar Contraseña</h2>
-          <p class="muted">Te enviaremos las instrucciones a tu correo institucional</p>
+          <p class="muted">Recupera el acceso con el correo que usaste al registrarte.</p>
         </div>
         <form id="f-forgot" class="form" action="#" method="post">
           <label>Correo Electrónico
-            <input name="email" type="email" autocomplete="email" required maxlength="254" placeholder="usuario@fwt.edu.ec">
+            <input name="email" type="email" autocomplete="email" required maxlength="254" placeholder="tucorreo@gmail.com">
           </label>
-          <button class="btn primary" type="submit" style="width: 100%;">Enviar enlace de recuperación</button>
+          <button class="btn primary" type="submit" style="width: 100%;">Enviar correo de recuperación</button>
         </form>
         <p class="links"><a href="#" data-go="login">← Volver a iniciar sesión</a></p>
+      </section>
+
+      <!-- Vista: Verificar el código recibido por correo -->
+      <section id="v-verify" hidden>
+        <div class="form-header">
+          <span class="recovery-badge" aria-hidden="true">✉</span>
+          <h2>Revisa tu correo</h2>
+          <p class="muted">Introduce el código de recuperación que recibiste. Si el mensaje incluye un enlace, también puedes abrirlo.</p>
+        </div>
+        <form id="f-verify" class="form" action="#" method="post">
+          <label>Correo de tu cuenta
+            <input name="email" type="email" autocomplete="email" required maxlength="254" placeholder="tucorreo@gmail.com">
+          </label>
+          <label>Código de recuperación
+            <input class="recovery-code" name="token" type="text" inputmode="numeric" autocomplete="one-time-code" required minlength="6" maxlength="10" pattern="[0-9]{6,10}" placeholder="Tu código" aria-describedby="code-help">
+          </label>
+          <p class="hint" id="code-help">Es de un solo uso. Nunca compartas este código ni tu contraseña.</p>
+          <button class="btn primary" type="submit" style="width: 100%;">Verificar código</button>
+          <button class="btn ghost" type="button" id="resend-code">Reenviar correo</button>
+        </form>
+        <p class="links"><a href="#" data-go="forgot">Cambiar correo</a><a href="#" data-go="login">Volver al inicio</a></p>
       </section>
 
       <!-- Vista: Resetear -->
@@ -142,6 +163,6 @@
   </section>
 </main>
 
-<script type="module" src="js/auth-page.js"></script>
+<script type="module" src="js/auth-page.js?v=20261018-recovery"></script>
 </body>
 </html>

@@ -1,14 +1,19 @@
 // Pantalla pública: inicio de sesión, registro, recuperación y restablecimiento de contraseña.
 import { sb, CONFIG, $, $$, getAccess, login, withBusy } from "./core.js";
+import { createPasswordRecovery } from "./password-recovery.js";
 
-const VIEWS = ["login", "register", "forgot", "reset"];
+const VIEWS = ["login", "register", "forgot", "verify", "reset"];
 const MSG = {
   idle: ["Tu sesión se cerró por inactividad.", "warn"],
   disabled: ["Tu cuenta no tiene acceso activo.", "err"],
   changed: ["Contraseña actualizada. Inicia sesión con la nueva."],
 };
 const params = new URLSearchParams(location.search);
-const recovering = params.get("view") === "reset" || location.hash.includes("type=recovery");
+const recovering = ["reset", "verify", "forgot"].includes(params.get("view")) || location.hash.includes("type=recovery");
+const recovery = createPasswordRecovery({
+  auth: sb.auth,
+  redirectTo: new URL("index.html?view=reset", location.href).href,
+});
 
 // Identidad desde la configuración
 $$("[data-logo]").forEach((i) => { i.src = CONFIG.LOGO_URL; });
@@ -35,6 +40,24 @@ function show(name) {
 }
 $$("[data-go]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); show(a.dataset.go); }));
 
+// Instalar antes de esperar a las consultas para no perder la apertura de un enlace.
+sb.auth.onAuthStateChange((ev, session) => {
+  if (ev === "PASSWORD_RECOVERY") {
+    recovery.acceptSession(session);
+    show("reset");
+  }
+  if (ev === "SIGNED_OUT") recovery.acceptSession(null);
+});
+
+if (recovering) {
+  show(params.get("view") === "verify" ? "verify" : "forgot");
+  const { data } = await sb.auth.getSession();
+  if (params.get("view") === "reset" && data?.session) {
+    recovery.acceptSession(data.session);
+    show("reset");
+  }
+}
+
 if (MSG[params.get("msg")]) note(...MSG[params.get("msg")]);
 
 // ¿Ya hay una sesión válida? Entrar directo (salvo si se está restableciendo la contraseña).
@@ -55,8 +78,6 @@ try {
 } catch (err) {
   console.warn("Registration mode check failed:", err);
 }
-
-sb.auth.onAuthStateChange((ev) => { if (ev === "PASSWORD_RECOVERY") show("reset"); });
 
 const same = (f) => f.password.value === f.again.value;
 
@@ -85,8 +106,47 @@ $("#f-register").addEventListener("submit", async (e) => {
 $("#f-forgot").addEventListener("submit", async (e) => {
   e.preventDefault(); const f = e.currentTarget;
   await withBusy(f.querySelector("[type=submit]"), async () => {
-    await sb.auth.resetPasswordForEmail(f.email.value.trim(), { redirectTo: new URL("index.html?view=reset", location.href).href });
-    note("Si el correo está registrado, recibirás un enlace para restablecer la contraseña."); // siempre igual
+    try {
+      const email = await recovery.requestCode(f.email.value);
+      $("#f-verify").elements.email.value = email;
+      $("#f-verify").elements.token.value = "";
+      show("verify");
+      note("Si el correo está registrado, recibirás las instrucciones de recuperación. Revisa también Spam.");
+      updateResend();
+    } catch (err) { note(err.message, "err"); }
+  });
+});
+
+const resend = $("#resend-code");
+function updateResend() {
+  const seconds = recovery.remainingSeconds();
+  resend.disabled = seconds > 0;
+  resend.textContent = seconds ? `Reenviar correo en ${seconds} s` : "Reenviar correo";
+}
+setInterval(updateResend, 1000);
+resend.addEventListener("click", async () => {
+  const f = $("#f-verify");
+  if (!f.elements.email.reportValidity()) return;
+  await withBusy(resend, async () => {
+    try {
+      await recovery.requestCode(f.elements.email.value);
+      f.elements.token.value = "";
+      note("Si el correo está registrado, recibirás nuevas instrucciones de recuperación.");
+    } catch (err) { note(err.message, "err"); }
+  });
+  updateResend();
+});
+
+$("#f-verify").addEventListener("submit", async (e) => {
+  e.preventDefault(); const f = e.currentTarget;
+  await withBusy(f.querySelector("[type=submit]"), async () => {
+    try {
+      await recovery.verifyCode(f.elements.email.value, f.elements.token.value);
+      f.elements.token.value = "";
+      history.replaceState(null, "", new URL("index.html?view=reset", location.href));
+      show("reset");
+      note("Correo verificado. Ya puedes elegir tu nueva contraseña.");
+    } catch (err) { note(err.message, "err"); }
   });
 });
 
@@ -94,9 +154,11 @@ $("#f-reset").addEventListener("submit", async (e) => {
   e.preventDefault(); const f = e.currentTarget;
   if (!same(f)) return note("Las contraseñas no coinciden.", "err");
   await withBusy(f.querySelector("[type=submit]"), async () => {
-    const { error } = await sb.auth.updateUser({ password: f.password.value });
-    if (error) return note("No se pudo guardar la contraseña. Pide un nuevo enlace e inténtalo otra vez.", "err");
-    await sb.auth.signOut({ scope: "local" });
-    location.replace("index.html?msg=changed");
+    try {
+      await recovery.changePassword(f.password.value, f.again.value);
+      f.reset();
+      sessionStorage.removeItem("fwt_access");
+      location.replace("index.html?msg=changed");
+    } catch (err) { note(err.message, "err"); }
   });
 });
