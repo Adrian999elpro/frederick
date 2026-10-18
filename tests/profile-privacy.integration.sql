@@ -1,0 +1,61 @@
+-- Integration checks use synthetic accounts only and always roll back.
+begin;
+do $test$
+declare a uuid:=gen_random_uuid(); b uuid:=gen_random_uuid(); admin_id uuid;
+ level uuid; subject uuid; period uuid; result jsonb; blocked boolean;
+begin
+ select p.id into admin_id from public.profiles p join public.roles r on r.id=p.role_id where r.name='admin' and p.status='active' limit 1;
+ select id into level from public.school_levels order by order_index limit 1;
+ select id into subject from public.subjects limit 1;
+ select id into period from public.grade_periods limit 1;
+ insert into auth.users(id,email,raw_app_meta_data,raw_user_meta_data,email_confirmed_at)
+ values(a,'qa-'||a||'@example.invalid','{"provider":"email"}','{"full_name":"QA Profile A"}',now()),
+       (b,'qa-'||b||'@example.invalid','{"provider":"email"}','{"full_name":"QA Profile B"}',now());
+ insert into public.profile_customizations(profile_id) values(a),(b);
+ insert into public.grades(student_id,subject_id,period_id,score) values(b,subject,period,9.5);
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',a,'role','authenticated')::text,true);
+ set local role authenticated;
+ if jsonb_array_length(public.school_profiles(b))<>0 then raise exception 'private profile leaked'; end if;
+ if exists(select 1 from public.grades where student_id=b) then raise exception 'private grades leaked'; end if;
+ if exists(select 1 from public.student_details where profile_id=b) then raise exception 'student details leaked'; end if;
+ if public.profile_photo_visible(b::text) then raise exception 'private photo exposed'; end if;
+ blocked:=false;
+ begin update public.profiles set role_id=(select role_id from public.profiles where id=a) where id=a; exception when insufficient_privilege then blocked:=true; end;
+ if not blocked then raise exception 'role escalation allowed'; end if;
+ blocked:=false;
+ begin perform public.set_student_privacy(b,'public',true); exception when insufficient_privilege then blocked:=true; end;
+ if not blocked then raise exception 'student admin privacy allowed'; end if;
+ perform public.submit_enrollment('QA Profile A','',level,'04:A1:B2:C3');
+ if not exists(select 1 from public.enrollment_requests where profile_id=a and status='pending' and card_uid='04:A1:B2:C3') then raise exception 'enrollment not pending'; end if;
+ blocked:=false;
+ begin perform public.review_enrollment(a,true); exception when insufficient_privilege then blocked:=true; end;
+ if not blocked then raise exception 'self approval allowed'; end if;
+ reset role;
+ update public.profile_customizations set visibility='public',show_grades=false where profile_id=b;
+ set local role authenticated;
+ result:=public.school_profiles(b);
+ if jsonb_array_length(result)<>1 or jsonb_array_length(result->0->'grades')<>0 then raise exception 'public profile without grades wrong'; end if;
+ if result->0 ? 'email' or result->0 ? 'phone' then raise exception 'contact leaked'; end if;
+ if not public.profile_photo_visible(b::text) then raise exception 'public photo unavailable'; end if;
+ reset role;
+ update public.profile_customizations set show_grades=true where profile_id=b;
+ set local role authenticated;
+ if jsonb_array_length(public.school_profiles(b)->0->'grades')<>1 then raise exception 'shared grades unavailable'; end if;
+ reset role;
+ update public.app_settings set value='{"student_choice":false}' where key='profile_privacy';
+ set local role authenticated;
+ blocked:=false;
+ begin update public.profile_customizations set visibility='public' where profile_id=a; exception when insufficient_privilege then blocked:=true; end;
+ if not blocked then raise exception 'school privacy lock bypassed'; end if;
+ update public.profile_customizations set nickname='Allowed customization' where profile_id=a;
+ reset role;
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',admin_id,'role','authenticated')::text,true);
+ set local role authenticated;
+ perform public.set_student_privacy(a,'public',false);
+ perform public.review_enrollment(a,true);
+ if not exists(select 1 from public.enrollment_requests where profile_id=a and status='approved') then raise exception 'admin review failed'; end if;
+ reset role;
+ if not exists(select 1 from public.nfc_cards where profile_id=a and card_uid='04:A1:B2:C3') then raise exception 'card not bound'; end if;
+end $test$;
+rollback;
+select 'Passed privacy, grades, storage-access, role protection, school control and NFC enrollment checks; test data rolled back.' as result;

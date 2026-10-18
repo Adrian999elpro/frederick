@@ -1,4 +1,4 @@
-import { sb, CONFIG, esc, toast, showError, login, getAccess, withBusy, $, $$ } from "../core.js";
+import { sb, CONFIG, esc, toast, showError, login, getAccess, withBusy, $, $$ } from "../core.js?v=20261018-community";
 
 export async function render(root, access) {
   const isStudent = access.role === "estudiante";

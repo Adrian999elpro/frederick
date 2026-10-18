@@ -1,6 +1,6 @@
 // Vista: Rankings Académicos FWT (General, por Especialidad Técnica y por Materia Única)
 // Exclusivamente para estudiantes con visibilidad de notas pública.
-import { sb, $, $$, esc, showError } from "../core.js";
+import { sb, $, $$, esc, showError } from "../core.js?v=20261018-community";
 
 export async function render(root) {
   root.innerHTML = `

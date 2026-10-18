@@ -1,61 +1,27 @@
-import { sb, esc, toast, showError, confirmBox, invalidate, $, $$ } from "../core.js";
-
-export async function render(root) {
-  const [r, p, rp] = await Promise.all([
-    sb.from("roles").select("id,name,description,is_system").order("name"),
-    sb.from("permissions").select("code,description").order("code"),
-    sb.from("role_permissions").select("role_id,permission_code"),
-  ]);
-  const err = r.error || p.error || rp.error; if (err) return showError(err);
-  const roles = r.data, perms = p.data;
-  const key = (rid, code) => `${rid}|${code}`;
-  const original = new Set(rp.data.map((x) => key(x.role_id, x.permission_code)));
-
-  root.innerHTML = `<h2>Roles y permisos</h2>
-  <form id="f-role" class="card form">
-    <h3>Nuevo rol</h3>
-    <div class="row">
-      <label>Nombre<input name="name" required pattern="[a-z][a-z0-9_]{1,30}" maxlength="31" placeholder="supervisor"></label>
-      <label>Descripción<input name="description" maxlength="200"></label>
-    </div>
-    <p class="hint">Nombre en minúsculas, sin espacios (letras, números y guion bajo).</p>
-    <div><button class="btn primary" type="submit">Crear rol</button></div>
-  </form>
-  <div class="card" id="matrix">
-    <div class="table-wrap"><table class="table">
-      <thead><tr><th>Permiso</th>${roles.map((x) => `<th class="center">${esc(x.name)}${x.is_system ? "" : ` <button class="btn danger sm" data-del="${esc(x.id)}" aria-label="Eliminar rol ${esc(x.name)}">✕</button>`}</th>`).join("")}</tr></thead>
-      <tbody>${perms.map((pm) => `<tr><td><strong>${esc(pm.code)}</strong><br><span class="hint">${esc(pm.description)}</span></td>
-        ${roles.map((x) => `<td class="center"><input type="checkbox" data-role="${esc(x.id)}" data-code="${esc(pm.code)}"
-           aria-label="${esc(x.name)}: ${esc(pm.code)}" ${original.has(key(x.id, pm.code)) ? "checked" : ""} ${x.name === "admin" ? "disabled" : ""}></td>`).join("")}</tr>`).join("")}</tbody>
-    </table></div>
-    <p class="hint">El rol admin siempre conserva todos los permisos. Los cambios se guardan por rol en una sola operación.</p>
-    <button id="save" class="btn primary" type="button">Guardar cambios</button>
-  </div>`;
-
-  $("#save", root).addEventListener("click", async () => {
-    const changed = roles.filter((x) => x.name !== "admin").map((x) => {
-      const codes = $$(`input[data-role="${x.id}"]:checked`, root).map((c) => c.dataset.code);
-      const was = perms.filter((pm) => original.has(key(x.id, pm.code))).map((pm) => pm.code);
-      return { id: x.id, codes, dirty: codes.length !== was.length || codes.some((c) => !was.includes(c)) };
-    }).filter((x) => x.dirty);
-    if (!changed.length) return toast("No hay cambios por guardar.");
-    const res = await Promise.all(changed.map((x) => sb.rpc("set_role_permissions", { p_role: x.id, p_codes: x.codes })));
-    const bad = res.find((x) => x.error); if (bad) return showError(bad.error);
-    toast("Permisos guardados."); render(root);
-  });
-
-  $("#f-role", root).addEventListener("submit", async (e) => {
-    e.preventDefault(); const f = e.currentTarget;
-    const { error } = await sb.from("roles").insert({ name: f.name.value.trim(), description: f.description.value.trim() });
-    if (error) return showError(error, error.code === "23505" ? "Ya existe un rol con ese nombre." : undefined);
-    invalidate("roles"); toast("Rol creado."); render(root);
-  });
-
-  $("#matrix", root).addEventListener("click", async (e) => {
-    const b = e.target.closest("[data-del]"); if (!b) return;
-    if (!await confirmBox("Se eliminará el rol. ¿Continuar?", "Eliminar")) return;
-    const { error } = await sb.from("roles").delete().eq("id", b.dataset.del);
-    if (error) return showError(error, error.code === "23503" ? "El rol tiene usuarios asignados." : undefined);
-    invalidate("roles"); toast("Rol eliminado."); render(root);
-  });
+import { sb, esc, toast, showError, confirmBox, invalidate, withBusy, $, $$ } from '../core.js?v=20261018-community';
+const LABELS={
+'community.moderate':['Moderar conversaciones','Leer foros y grupos, retirar mensajes y suspender escritura. No permite leer chats privados.'],
+'users.read':['Ver usuarios','Consultar las cuentas del colegio.'], 'users.manage':['Administrar usuarios','Crear cuentas, cambiar roles y gestionar su privacidad.'],
+'roles.manage':['Administrar permisos','Elegir lo que puede hacer cada rol.'], 'settings.manage':['Ajustar la plataforma','Abrir el registro y decidir quién elige la privacidad.'], 'audit.read':['Ver historial','Consultar cambios realizados en la plataforma.'],
+'announcements.read':['Leer anuncios','Ver los comunicados del colegio.'], 'announcements.manage':['Publicar anuncios','Crear, editar y fijar comunicados importantes.'],
+'council.open':['Abrir postulaciones','Abrir o cerrar la recepción de planes de trabajo.'], 'council.review':['Revisar postulaciones','Aprobar listas o rechazarlas explicando el motivo.'],
+'polls.manage':['Administrar votaciones','Crear votaciones, abrirlas, cerrarlas y consultar participación.'], 'polls.operate':['Operar votación NFC','Recibir votos de estudiantes usando sus tarjetas.'],
+'nfc.attendance':['Tomar asistencia','Registrar entradas con la tarjeta del estudiante.'], 'nfc.manage':['Administrar tarjetas','Asignar o desactivar tarjetas.'],
+'grades.read':['Consultar notas','Acceder a las notas permitidas para la cuenta.'], 'grades.upload':['Calificar materias','Subir las notas de las materias asignadas.'], 'grades.manage':['Administrar calificaciones','Gestionar materias, períodos y calificaciones.'],
+'ranking.read':['Ver destacados','Consultar los rankings que los estudiantes comparten.'],
+'elections.manage':['Elecciones anteriores','Administrar el módulo electoral anterior.'], 'elections.vote':['Participación electoral','Acceso estudiantil al módulo electoral anterior.'], 'elections.stats':['Resultados anteriores','Ver estadísticas del módulo electoral anterior.'],
+ 'terminal.operate':['Usar terminal escolar','Consultar perfiles con tarjeta y activar el modo terminal.'], 'terminal.unlock':['Desbloquear terminal','La tarjeta de este rol puede cambiar modos y salir del bloqueo.']
+};
+const friendly=s=>({admin:'Administrador',rector:'Rector',director:'Director',docente:'Docente',estudiante:'Estudiante',encargado_consejo:'Encargado del consejo',moderador_anuncios:'Encargado de anuncios',moderador_comunidad:'Moderador de comunidad',usuario:'Usuario básico'}[s]||s.replaceAll('_',' '));
+export async function render(root){
+ const [r,p,rp]=await Promise.all([sb.from('roles').select('id,name,description,is_system').order('name'),sb.from('permissions').select('code,description').order('code'),sb.from('role_permissions').select('role_id,permission_code')]);
+ if(r.error||p.error||rp.error)throw r.error||p.error||rp.error;
+ root.innerHTML=`<h1>Roles y permisos</h1><p class="muted">Un rol agrupa acciones. Elige uno y marca lo que podrá hacer; luego asígnalo a una persona desde Usuarios.</p><section class="card form"><label>¿Qué rol quieres configurar?<select id="role">${r.data.map(x=>`<option value="${x.id}">${esc(friendly(x.name))}</option>`).join('')}</select></label><p id="role-description" class="hint"></p><div id="permission-cards"></div><div class="row"><button id="save" class="btn primary">Guardar permisos de este rol</button><button id="delete-role" class="btn ghost">Eliminar rol</button></div></section><details class="card"><summary>Crear otro rol</summary><form id="new-role" class="form"><label>Nombre<input name="name" required maxlength="31" placeholder="Encargado de biblioteca"></label><label>¿Para qué sirve?<input name="description" required maxlength="200" placeholder="Organizar los préstamos de libros"></label><button class="btn primary">Crear rol</button></form></details>`;
+ function draw(){const role=r.data.find(x=>x.id===$('#role',root).value);$('#role-description',root).textContent=role.name==='admin'?'El administrador conserva todos los permisos.':role.description;
+ const selected=new Set(rp.data.filter(x=>x.role_id===role.id).map(x=>x.permission_code));const groups={};for(const perm of p.data){const group=({users:'Personas y cuentas',roles:'Personas y cuentas',settings:'Personas y cuentas',audit:'Personas y cuentas',grades:'Vida académica',ranking:'Vida académica',nfc:'Tarjetas y terminal',terminal:'Tarjetas y terminal',council:'Consejo y votaciones',polls:'Consejo y votaciones',announcements:'Anuncios',community:'Conversaciones',elections:'Módulo electoral anterior'})[perm.code.split('.')[0]]||'Otras acciones';(groups[group]??=[]).push(perm);}
+ $('#permission-cards',root).innerHTML=Object.entries(groups).map(([name,items])=>`<fieldset><legend>${name}</legend><div class="home-grid">${items.map(pm=>{const [title,help]=LABELS[pm.code]||[pm.description,pm.description];return `<label class="interest-option"><input type="checkbox" value="${pm.code}" ${selected.has(pm.code)?'checked':''} ${role.name==='admin'?'disabled':''}><span><strong>${esc(title)}</strong><small>${esc(help)}</small></span></label>`;}).join('')}</div></fieldset>`).join('');$('#save',root).disabled=role.name==='admin';$('#delete-role',root).hidden=role.is_system;}
+ $('#role',root).addEventListener('change',draw);draw();
+ $('#save',root).onclick=async e=>withBusy(e.currentTarget,async()=>{const id=$('#role',root).value,codes=$$('#permission-cards input:checked',root).map(c=>c.value);const {error}=await sb.rpc('set_role_permissions',{p_role:id,p_codes:codes});if(error)return showError(error);rp.data=rp.data.filter(x=>x.role_id!==id).concat(codes.map(code=>({role_id:id,permission_code:code})));toast('Permisos guardados.');});
+ $('#new-role',root).onsubmit=async e=>{e.preventDefault();const f=e.currentTarget;const name=f.elements.namedItem("name").value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'');if(!/^[a-z][a-z0-9_]{1,30}$/.test(name))return toast('Usa un nombre de entre 2 y 31 letras.','err');const {error}=await sb.from('roles').insert({name,description:f.elements.namedItem("description").value.trim()});if(error)return showError(error);invalidate('roles');toast('Rol creado.');render(root);};
+ $('#delete-role',root).onclick=async()=>{const id=$('#role',root).value;if(!await confirmBox('¿Eliminar este rol? No se puede eliminar si hay personas que lo usan.','Eliminar'))return;const {error}=await sb.from('roles').delete().eq('id',id);if(error)return showError(error,'No se pudo eliminar; revisa si tiene usuarios asignados.');invalidate('roles');render(root);};
 }

@@ -1,9 +1,9 @@
 // Vista: Cartelera de Novedades y Anuncios Institucionales FWT
 // Publicaciones oficiales de Rectores, Directores y Profesores
-import { sb, $, $$, esc, toast, confirmBox, withBusy, showError } from "../core.js";
+import { sb, $, $$, esc, toast, confirmBox, withBusy, showError } from "../core.js?v=20261018-community";
 
 export async function render(root, access) {
-  const canPublish = access.permissions.includes("announcements.manage") || access.role === "admin";
+  const canPublish = !access.terminal && (access.permissions.includes("announcements.manage") || access.role === "admin");
 
   root.innerHTML = `
     <header class="row" style="justify-content: space-between; margin-bottom: 1.5rem;">
@@ -127,7 +127,7 @@ export async function render(root, access) {
       const authorName = item.profiles?.full_name || item.profiles?.email || 'Institucional';
       const targetLabel = item.school_levels?.name ? `Dirigido a: <b>${esc(item.school_levels.name)}</b>` : 'Dirigido a: <b>Todo el Colegio</b>';
 
-      const canDelete = access.role === 'admin' || access.id === item.author_id;
+      const canDelete = !access.terminal && (access.role === 'admin' || access.id === item.author_id);
 
       return `
         <article class="announcement-card ${cardClass}">
@@ -187,7 +187,7 @@ export async function render(root, access) {
       const btn = $("button[type=submit]", form);
       await withBusy(btn, async () => {
         const payload = {
-          title: form.title.value.trim(),
+          title: form.elements.namedItem("title").value.trim(),
           content: form.content.value.trim(),
           category: form.category.value,
           author_role_title: form.author_role_title.value.trim(),

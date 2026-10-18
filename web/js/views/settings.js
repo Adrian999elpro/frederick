@@ -1,4 +1,4 @@
-import { sb, esc, toast, showError, withBusy, $ } from "../core.js";
+import { sb, esc, toast, showError, withBusy, $ } from "../core.js?v=20261018-community";
 
 const DOMAIN_RE = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
 
@@ -20,6 +20,7 @@ export async function render(root) {
   ];
 
   root.innerHTML = `<h2>Registro y ajustes</h2>
+  <form id="privacy-policy" class="card form"><h3>Privacidad de los perfiles</h3><p>Decide quién puede cambiar la visibilidad del perfil y compartir calificaciones.</p><label class="interest-option"><input id="student-choice" type="checkbox"><span><strong>Permitir que cada estudiante elija</strong><small>Si se desactiva, solo un administrador podrá cambiar la privacidad desde Usuarios. Se conservan las elecciones actuales.</small></span></label><button class="btn primary">Guardar política de privacidad</button><p id="privacy-result" role="status"></p></form>
   <form id="f" class="card form">
     <h3>Registro de usuarios</h3>
     ${modes.map(([v, t, d]) => `<label class="row"><input type="radio" name="mode" value="${v}" ${cfg.mode === v ? "checked" : ""}>
@@ -31,6 +32,17 @@ export async function render(root) {
     <p class="hint">Las cuentas auto-registradas confirman su correo antes de poder entrar.</p>
     <div><button class="btn primary" type="submit">Guardar</button></div>
   </form>`;
+
+  const privacy = await sb.rpc("profile_privacy_settings");
+  if (privacy.error) showError(privacy.error);
+  $("#student-choice",root).checked = privacy.data?.student_choice === true;
+  $("#privacy-policy",root).addEventListener("submit",async e=>{
+    e.preventDefault();const form=e.currentTarget;
+    await withBusy($("button",form),async()=>{
+      const {error}=await sb.from("app_settings").update({value:{student_choice:$("#student-choice",root).checked}}).eq("key","profile_privacy").select("key").single();
+      if(error)return showError(error);$("#privacy-result",root).textContent="Política guardada.";toast("Política de privacidad actualizada.");
+    });
+  });
 
   $("#f", root).addEventListener("submit", async (e) => {
     e.preventDefault(); const f = e.currentTarget;

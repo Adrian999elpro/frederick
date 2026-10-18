@@ -1,6 +1,6 @@
 // Vista: Administración de Tarjetas NFC / RFID
 // Vinculación a cuentas de usuario y definición de rangos institucionales
-import { sb, $, $$, esc, toast, confirmBox, withBusy, showError } from "../core.js";
+import { sb, $, $$, esc, toast, confirmBox, withBusy, showError } from "../core.js?v=20261018-community";
 
 export async function render(root, access) {
   const canManage = access.permissions.includes("nfc.manage") || access.role === "admin";

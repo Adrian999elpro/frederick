@@ -1,6 +1,6 @@
 // Pantalla pública: inicio de sesión, registro, recuperación y restablecimiento de contraseña.
-import { sb, CONFIG, $, $$, getAccess, login, withBusy } from "./core.js";
-import { createPasswordRecovery } from "./password-recovery.js";
+import { sb, CONFIG, $, $$, getAccess, login, withBusy } from "./core.js?v=20261018-community";
+import { createPasswordRecovery } from "./password-recovery.js?v=20261018-community";
 
 const VIEWS = ["login", "register", "forgot", "verify", "reset"];
 const MSG = {
@@ -75,6 +75,7 @@ try {
   const { data: mode } = await sb.rpc("public_registration_mode");
   const regBtn = $("#to-register");
   if (regBtn) regBtn.hidden = !mode || mode === "closed";
+  if (!recovering && params.get("view") === "register" && mode && mode !== "closed") show("register");
 } catch (err) {
   console.warn("Registration mode check failed:", err);
 }
@@ -84,7 +85,14 @@ const same = (f) => f.password.value === f.again.value;
 $("#f-login").addEventListener("submit", async (e) => {
   e.preventDefault(); const f = e.currentTarget;
   await withBusy(f.querySelector("[type=submit]"), async () => {
-    try { await login(f.email.value.trim(), f.password.value); location.replace("app.html"); }
+    try {
+      await login(f.email.value.trim(), f.password.value);
+      if (window.FrederickTerminal && !(await getAccess(true))?.permissions?.includes("terminal.operate")) {
+        await sb.auth.signOut({scope:"local"});
+        throw new Error("Esta app funciona como terminal del colegio. Debe iniciar sesión un encargado. Para tu cuenta personal, usa la página web.");
+      }
+      location.replace("app.html");
+    }
     catch (err) { note(err.message, "err"); f.password.value = ""; }
   });
 });

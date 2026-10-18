@@ -1,0 +1,83 @@
+-- Uses synthetic accounts and rolls back every message, group, sanction and media row.
+begin;
+do $test$
+declare a uuid:=gen_random_uuid(); b uuid:=gen_random_uuid(); mod_id uuid:=gen_random_uuid(); outsider uuid:=gen_random_uuid();
+ dm uuid; grp uuid; msg text; public_msg text; img text; rows jsonb; blocked boolean; level uuid;
+begin
+ select id into level from public.school_levels order by order_index limit 1;
+ insert into auth.users(id,email,raw_app_meta_data,raw_user_meta_data,email_confirmed_at) values
+ (a,'qa-'||a||'@example.invalid','{"provider":"email"}',jsonb_build_object('full_name','QA Chat A','registration_level',level,'registration_card','09:88:77:66'),now()),
+ (b,'qa-'||b||'@example.invalid','{"provider":"email"}','{"full_name":"QA Chat B"}',now()),
+ (mod_id,'qa-'||mod_id||'@example.invalid','{"provider":"email"}','{"full_name":"QA Moderator"}',now()),
+ (outsider,'qa-'||outsider||'@example.invalid','{"provider":"email"}','{"full_name":"QA Outsider"}',now());
+ if not exists(select 1 from public.enrollment_requests where profile_id=a and card_uid='09:88:77:66') then raise exception 'registration metadata did not enqueue enrollment';end if;
+ update public.profiles set role_id=(select id from public.roles where name='rector') where id=mod_id;
+ insert into public.profile_customizations(profile_id,visibility) values(a,'private'),(b,'private');
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',a,'role','authenticated')::text,true);
+ set local role authenticated;
+ dm:=public.school_chat_direct(b);
+ if dm<>public.school_chat_direct(b) then raise exception 'duplicate direct room';end if;
+ msg:=public.school_chat_send(dm,'Mensaje privado de prueba');
+ grp:=public.school_chat_create('group','QA Grupo','Conversación de prueba');
+ public_msg:=public.school_chat_send(grp,'Mensaje de grupo de prueba');
+ img:=a::text||'/'||dm::text||'/'||gen_random_uuid()::text||'.jpg';
+ if not public.school_chat_photo_writable(img) then raise exception 'participant cannot upload';end if;
+ reset role;
+ insert into storage.objects(bucket_id,name,metadata) values('school-chat',img,'{"mimetype":"image/jpeg","size":100}');
+ set local role authenticated;
+ perform public.school_chat_send(dm,'Foto privada',img);
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',b,'role','authenticated')::text,true);
+ if jsonb_array_length(public.school_chat_messages_page(dm))<>2 or not public.school_chat_photo_readable(img) then raise exception 'recipient cannot read private chat';end if;
+ if not public.profile_photo_visible(a::text) then raise exception 'message author avatar missing';end if;
+ if jsonb_array_length(public.school_profiles(a))<>0 then raise exception 'private profile exposed by messaging';end if;
+ if public.school_chat_readable(grp) then raise exception 'nonmember reads group';end if;
+ perform public.school_chat_join(grp,true);
+ if not public.school_chat_readable(grp) then raise exception 'group join failed';end if;
+ perform public.school_chat_join(grp,false);
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',outsider,'role','authenticated')::text,true);
+ if public.school_chat_readable(dm) or public.school_chat_photo_readable(img) then raise exception 'outsider reads direct messages or photos';end if;
+ if public.profile_photo_visible(a::text) then raise exception 'private author photo exposed without shared room';end if;
+ blocked:=false;
+ begin perform public.school_chat_messages_page(dm);exception when insufficient_privilege then blocked:=true;end;
+ if not blocked then raise exception 'outsider fetched direct room';end if;
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',mod_id,'role','authenticated')::text,true);
+ if not public.school_chat_readable(grp) then raise exception 'moderator cannot review group';end if;
+ if public.school_chat_readable(dm) or public.school_chat_photo_readable(img) then raise exception 'moderator sees private messages or media';end if;
+ if exists(select 1 from jsonb_array_elements(public.school_chat_list()->'rooms') r where r->>'id'=dm::text) then raise exception 'moderator lists other private chat';end if;
+ blocked:=false;
+ begin perform public.school_chat_remove(msg::bigint,'Moderador no debe leer privado');exception when insufficient_privilege then blocked:=true;end;
+ if not blocked then raise exception 'moderator removed private message';end if;
+ blocked:=false;
+ begin perform public.school_chat_close(dm,true);exception when insufficient_privilege then blocked:=true;end;
+ if not blocked then raise exception 'moderator closed private chat';end if;
+ perform public.school_chat_remove(public_msg::bigint,'Mensaje inadecuado de prueba');
+ rows:=public.school_chat_messages_page(grp);
+ if rows->0->>'body'<>'' or (rows->0->>'removed')::boolean is not true then raise exception 'removed message still readable';end if;
+ perform public.school_chat_sanction(a,60,false,'Suspensión temporal de prueba');
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',a,'role','authenticated')::text,true);
+ if public.school_chat_can_write(dm) or public.school_chat_photo_writable(img) then raise exception 'suspension bypassed';end if;
+ blocked:=false;
+ begin perform public.school_chat_send(dm,'No debe enviarse');exception when insufficient_privilege then blocked:=true;end;
+ if not blocked then raise exception 'muted user sent message';end if;
+ if public.school_chat_list()->'sanction'->>'reason'<>'Suspensión temporal de prueba' then raise exception 'suspension reason missing';end if;
+ reset role;
+ update public.school_chat_sanctions set until_at=now()-interval '1 minute' where user_id=a;
+ set local role authenticated;
+ if not public.school_chat_can_write(dm) then raise exception 'expired suspension persists';end if;
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',mod_id,'role','authenticated')::text,true);
+ perform public.school_chat_sanction(a,null,true,'Suspensión permanente de prueba');
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',a,'role','authenticated')::text,true);
+ if public.school_chat_can_write(dm) then raise exception 'permanent suspension ignored';end if;
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',mod_id,'role','authenticated')::text,true);
+ perform public.school_chat_sanction(a,0,false,'Retirada de prueba');
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',a,'role','authenticated')::text,true);
+ if not public.school_chat_can_write(dm) then raise exception 'sanction not lifted';end if;
+ blocked:=false;
+ begin perform 1 from public.school_chat_messages;exception when insufficient_privilege then blocked:=true;end;
+ if not blocked then raise exception 'raw messages table accessible';end if;
+ rows:=public.school_person_card(b);
+ if rows ? 'email' or rows ? 'phone' or rows ? 'grades' then raise exception 'person card leaked private data';end if;
+ reset role;
+end $test$;
+rollback;
+select 'Passed private chat and photo isolation, group access, moderation, timed/permanent bans, author identity, private profiles and registration queue. Test data rolled back.' as result;

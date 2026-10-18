@@ -1,5 +1,5 @@
 // Estadísticas Electorales: participación y resultados por lista, con foto del presidente.
-import { sb, esc, photoUrls, initials, showError, $, $$ } from "../core.js";
+import { sb, esc, photoUrls, initials, showError, $, $$ } from "../core.js?v=20261018-community";
 
 const pct = (n, d) => (d ? (n * 100) / d : 0);
 const fmt = (x) => `${x.toFixed(1).replace(".", ",")} %`;

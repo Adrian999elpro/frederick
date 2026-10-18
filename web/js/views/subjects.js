@@ -1,5 +1,5 @@
 // Vista: Materias Configurables y Asignación de Profesores (Indicadores Docentes)
-import { sb, $, $$, esc, toast, confirmBox, withBusy, showError } from "../core.js";
+import { sb, $, $$, esc, toast, confirmBox, withBusy, showError } from "../core.js?v=20261018-community";
 
 export async function render(root, access) {
   const canManage = access.permissions.includes("grades.manage") || access.role === "admin";
@@ -288,11 +288,11 @@ export async function render(root, access) {
       const btn = $("button[type=submit]", form);
       await withBusy(btn, async () => {
         const payload = {
-          name: form.name.value.trim(),
+          name: form.elements.namedItem("name").value.trim(),
           code: form.code.value.trim().toUpperCase(),
           level_id: form.level_id.value,
           specialty_id: form.specialty_id.value || null,
-          description: form.description.value.trim()
+          description: form.elements.namedItem("description").value.trim()
         };
         const { error } = await sb.from("subjects").insert(payload);
         if (error) showError(error);

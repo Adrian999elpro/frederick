@@ -1,5 +1,5 @@
 // Papeleta de votación: una lista por tarjeta con foto del presidente, voto en blanco y confirmación.
-import { sb, esc, fmtDate, photoUrls, initials, toast, showError, confirmBox, withBusy, $ } from "../core.js";
+import { sb, esc, fmtDate, photoUrls, initials, toast, showError, confirmBox, withBusy, $ } from "../core.js?v=20261018-community";
 
 const photo = (l, urls) => urls[l.president_photo]
   ? `<img class="photo" src="${esc(urls[l.president_photo])}" alt="Foto de ${esc(l.president_name)}">`

@@ -1,5 +1,5 @@
 // Vista: Calificaciones y Subida de Notas por Excel (CSV / XLSX)
-import { sb, $, $$, esc, toast, withBusy, showError } from "../core.js";
+import { sb, $, $$, esc, toast, withBusy, showError } from "../core.js?v=20261018-community";
 
 export async function render(root, access) {
   const isTeacherOrAdmin = access.permissions.includes("grades.upload") || access.role === "admin";

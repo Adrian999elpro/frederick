@@ -1,5 +1,5 @@
 // Administración de votaciones: crear, agregar listas con foto del presidente, abrir y cerrar.
-import { sb, esc, toast, showError, confirmBox, fmtDate, photoUrls, initials, withBusy, $, $$ } from "../core.js";
+import { sb, esc, toast, showError, confirmBox, fmtDate, photoUrls, initials, withBusy, $, $$ } from "../core.js?v=20261018-community";
 
 const STATUS = { draft: ["Borrador", "warn"], open: ["Abierta", "ok"], closed: ["Cerrada", ""] };
 const TYPES = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
@@ -37,7 +37,7 @@ export async function render(root) {
       const starts = new Date(f.starts.value), ends = new Date(f.ends.value);
       if (!(ends > starts)) return toast("El cierre debe ser posterior al inicio.", "err");
       await withBusy($("[type=submit]", f), async () => {
-        const { error: err } = await sb.from("elections").insert({ title: f.title.value.trim(), description: f.description.value.trim(),
+        const { error: err } = await sb.from("elections").insert({ title: f.elements.namedItem("title").value.trim(), description: f.elements.namedItem("description").value.trim(),
           starts_at: starts.toISOString(), ends_at: ends.toISOString() });
         if (err) return showError(err); toast("Votación creada en borrador."); draw();
       });
@@ -122,7 +122,7 @@ export async function render(root) {
           if (up.error) return showError(up.error);
         }
         const { error: err } = await sb.from("election_lists").insert({ election_id: e.id, number: Number(f.number.value),
-          name: f.name.value.trim(), slogan: f.slogan.value.trim(), president_name: f.president.value.trim(), president_photo: path });
+          name: f.elements.namedItem("name").value.trim(), slogan: f.slogan.value.trim(), president_name: f.president.value.trim(), president_photo: path });
         if (err) { if (path) await sb.storage.from(BUCKET).remove([path]); return showError(err, err.code === "23505" ? "Ya existe una lista con ese número." : undefined); }
         toast("Lista agregada."); drawDetail(e);
       });

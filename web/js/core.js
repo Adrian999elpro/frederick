@@ -1,9 +1,12 @@
 // Núcleo del frontend: cliente Supabase, sesión, acceso, caché y utilidades de interfaz.
 // Aquí NO se decide ninguna autorización: lo que se oculta en pantalla lo vuelve a exigir el servidor (RLS/RPC).
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
-import { CONFIG } from "./config.js";
+import { CONFIG } from "./config.js?v=20261018-community";
 
 export { CONFIG };
+export const registrationClient = () => createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
+  auth: { storageKey: "fwt_enrollment_only", persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+});
 export const sb = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
   auth: {
     storage: CONFIG.PERSIST_SESSION ? window.localStorage : window.sessionStorage,
@@ -40,6 +43,14 @@ export async function withBusy(btn, fn) {
 }
 
 const MESSAGES = {
+  writing_suspended: "No puedes escribir ahora. Revisa si tienes una suspensión, si el grupo está cerrado o si debes unirte.",
+  chat_rate_limit: "Has enviado varias solicitudes. Espera un momento antes de continuar.",
+  invalid_recipient: "Esta persona no está disponible para recibir mensajes.",
+  applications_closed: "Las postulaciones están cerradas. Espera a que el encargado las abra.",
+  reason_required: "Explica el motivo del rechazo.",
+  scan_required: "Acerca tu tarjeta otra vez para continuar.",
+  already_accepted: "Tu lista ya fue aprobada.",
+  card_not_authorized: "Esta tarjeta no tiene permiso para desbloquear el terminal.",
   already_voted: "Ya registraste tu voto en esta votación.",
   election_not_open: "Esta votación no está abierta.",
   invalid_list: "La lista seleccionada no es válida.",
@@ -125,6 +136,7 @@ export async function requireAccess() {
   if (!data.session) { location.replace("index.html"); return null; }
   const access = await getAccess(true);
   if (!access) { await logout("disabled"); return null; }
+  if (window.FrederickTerminal && !access.permissions.includes("terminal.operate")) { await logout("disabled"); return null; }
   startIdleTimer();
   sb.auth.onAuthStateChange((ev) => { if (ev === "SIGNED_OUT") location.replace("index.html"); });
   return access;
