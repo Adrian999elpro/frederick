@@ -30,7 +30,7 @@ Se añadió verificación de códigos de recuperación con Supabase (`type: reco
 
 La plantilla de marca está en `supabase/templates/recovery.html` y el remitente temporal autorizado es `adrianvillagomez47@gmail.com`. La configuración SMTP de Gmail fue guardada por el titular en Supabase; su contraseña de aplicación se introduce exclusivamente en ese panel. La plantilla remota se administra en Authentication → Emails → Reset password; no basta con subir el archivo a GitHub.
 
-Se configuraron la URL principal de GitHub Pages y los dos destinos exactos para confirmación (`index.html`) y recuperación (`index.html?view=reset`). La entrega real debe comprobarse con un correo solicitado por el titular; los resultados de las pruebas automáticas no prueban la entrega del proveedor.
+Se configuraron la URL principal de GitHub Pages y los dos destinos exactos para confirmación (`index.html`) y recuperación (`index.html?view=reset`). La plantilla personalizada se guardó en Supabase y se verificó tras recargar el panel. La publicación de la pantalla de código terminó correctamente en GitHub Actions. El titular decidió realizar la prueba de correo después; no se ha validado todavía la entrega de Gmail ni se han cambiado contraseñas reales.
 
 Verificaciones de esta mejora: seis pruebas automatizadas del flujo con un servicio simulado, revisión de sintaxis y revisión visual de la pantalla y el correo. No se enviaron mensajes ni se cambiaron contraseñas reales en esas pruebas.
 
@@ -39,5 +39,5 @@ Verificaciones de esta mejora: seis pruebas automatizadas del flujo con un servi
 - GitHub Pages publica únicamente la carpeta `web/` mediante el flujo de Actions.
 - Los secretos de servidor permanecen en Supabase.
 - El historial remoto inicial estaba vacío: reconciliar el esquema manual y las versiones antes de usar `supabase db push`.
-- Configurar destinos de correo en Supabase Auth para la URL definitiva de la web.
+- Mantener los destinos de Supabase Auth al cambiar la dirección definitiva de la web.
 - Probar con cuentas de cada rol antes de cargar registros escolares reales.
