@@ -1,30 +1,14 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:wft/main.dart';
-
+import 'package:wft/portal_policy.dart';
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test('El portal y sus pantallas están permitidos', () {
+    expect(allowedPortalUrl(portalUrl), isTrue);
+    expect(allowedPortalUrl('${portalUrl}app.html#my-card'), isTrue);
+    expect(allowedPortalUrl('${portalUrl}index.html?view=verify'), isTrue);
+  });
+  test('Bloquea páginas externas, HTTP, rutas ajenas y hosts engañosos', () {
+    for (final url in ['http://adrian999elpro.github.io/frederick/', 'https://evil.example/frederick/', 'https://adrian999elpro.github.io.evil.example/frederick/', 'https://adrian999elpro.github.io/otro/', 'javascript:alert(1)', 'https://user@adrian999elpro.github.io/frederick/']) {
+      expect(allowedPortalUrl(url), isFalse, reason: url);
+    }
   });
 }

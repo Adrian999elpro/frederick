@@ -1,0 +1,50 @@
+name: APK Frederick Android
+on:
+  push:
+    branches: [main]
+    paths: ['flutter/fwt_auth/wft/**', '.github/workflows/android.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: android-preview
+  cancel-in-progress: true
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Instalar Flutter oficial
+        run: |
+          git clone --depth 1 --branch 3.47.7 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+      - name: Preparar proyecto y verificar
+        working-directory: flutter/fwt_auth/wft
+        run: |
+          flutter create --platforms=android --project-name=wft .
+          flutter pub get --enforce-lockfile
+          flutter analyze
+          flutter test
+      - name: Compilar APK de prueba
+        working-directory: flutter/fwt_auth/wft
+        run: flutter build apk --release
+      - name: Preparar descarga
+        run: |
+          cp flutter/fwt_auth/wft/build/app/outputs/flutter-apk/app-release.apk Frederick-Escolar.apk
+          sha256sum Frederick-Escolar.apk > Frederick-Escolar.apk.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Frederick-Escolar-APK
+          path: |
+            Frederick-Escolar.apk
+            Frederick-Escolar.apk.sha256
+      - name: Publicar descarga de prueba
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "android-preview-${GITHUB_RUN_NUMBER}" Frederick-Escolar.apk Frederick-Escolar.apk.sha256 --target "$GITHUB_SHA" --title "Frederick Escolar · Android de prueba ${GITHUB_RUN_NUMBER}" --prerelease --notes "APK instalable de prueba. Comparte la interfaz de la web y requiere internet. Incluye selección de fotos y lector NFC si el teléfono lo admite. Firmado con la clave de prueba de Android: una compilación posterior puede requerir desinstalar esta versión. No es una publicación de Google Play."
