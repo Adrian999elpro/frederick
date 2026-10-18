@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'portal_policy.dart';
@@ -23,7 +24,7 @@ class _SchoolPortalState extends State<SchoolPortal> {
   static const _nfc = MethodChannel('ec.frederick.escolar/nfc');
   late final WebViewController _web;
   int _progress = 0;
-  bool _failed = false, _scanning = false;
+  bool _failed = false, _scanning = false, _terminal = false;
   @override
   void initState() {
     super.initState();
@@ -34,6 +35,27 @@ class _SchoolPortalState extends State<SchoolPortal> {
         final current = await _web.currentUrl();
         if (current == null || !allowedPortalUrl(current) || message.message != 'scan') return;
         await _scan();
+      })
+      ..addJavaScriptChannel('FrederickTerminal', onMessageReceived: (message) async {
+        final current = await _web.currentUrl();
+        if (current == null || !allowedPortalUrl(current)) return;
+        try {
+          final request = jsonDecode(message.message) as Map<String, dynamic>;
+          if (request['action'] == 'activate') {
+            _terminal = true;
+            final mode = await _nfc.invokeMethod<String>('pin');
+            await _terminalEvent({'message': mode == 'dedicated' ? 'Bloqueo de dispositivo dedicado activo.' : 'Terminal activo. Acepta la fijación de pantalla de Android para limitar el cambio de app.'});
+          } else if (request['action'] == 'unlock' && request['ticket'] is String) {
+            final response = await http.post(Uri.parse('https://kskzurpimoggbzuvwzts.supabase.co/rest/v1/rpc/consume_terminal_unlock'),
+              headers: {'apikey': 'sb_publishable_Ti8PUJ0hmDq67kpEvhAgxA_qgdygaUA', 'Content-Type': 'application/json'},
+              body: jsonEncode({'p_token': request['ticket']})).timeout(const Duration(seconds: 15));
+            if (response.statusCode == 200 && response.body.trim() == 'true') {
+              await _nfc.invokeMethod<void>('unpin');
+              _terminal = false;
+              await _terminalEvent({'unlocked': true, 'message': 'Terminal desbloqueado.'});
+            } else { await _terminalEvent({'message': 'Autorización vencida. Lee otra vez la tarjeta del encargado.'}); }
+          }
+        } catch (_) { await _terminalEvent({'message': 'No se pudo cambiar el bloqueo. Revisa la conexión e inténtalo de nuevo.'}); }
       })
       ..setNavigationDelegate(NavigationDelegate(
         onNavigationRequest: (request) => allowedPortalUrl(request.url) ? NavigationDecision.navigate : NavigationDecision.prevent,
@@ -64,7 +86,11 @@ class _SchoolPortalState extends State<SchoolPortal> {
       await _web.runJavaScript('window.dispatchEvent(new CustomEvent("frederick-nfc", {detail: ${jsonEncode({'uid': uid, 'error': error})}}));');
     }
   }
-  Future<void> _back() async { if (await _web.canGoBack()) { await _web.goBack(); } else { await SystemNavigator.pop(); } }
+  Future<void> _terminalEvent(Map<String, dynamic> value) => _web.runJavaScript('window.dispatchEvent(new CustomEvent("frederick-terminal", {detail: ${jsonEncode(value)}}));');
+  Future<void> _back() async {
+    if (_terminal) { await _web.runJavaScript('window.dispatchEvent(new Event("frederick-terminal-back"));'); return; }
+    if (await _web.canGoBack()) { await _web.goBack(); } else { await SystemNavigator.pop(); }
+  }
   @override
   void dispose() { _nfc.invokeMethod<void>('cancel'); super.dispose(); }
   @override

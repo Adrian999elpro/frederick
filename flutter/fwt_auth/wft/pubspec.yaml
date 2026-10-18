@@ -1,7 +1,7 @@
 name: wft
 description: Frederick Escolar para Android, con portal actualizado, fotos y lector NFC.
 publish_to: none
-version: 1.1.0+2
+version: 1.2.0+3
 environment:
   sdk: ^3.13.5
 dependencies:
@@ -10,6 +10,7 @@ dependencies:
   webview_flutter: 4.14.1
   webview_flutter_android: 4.14.1
   image_picker: 1.2.4
+  http: 1.6.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

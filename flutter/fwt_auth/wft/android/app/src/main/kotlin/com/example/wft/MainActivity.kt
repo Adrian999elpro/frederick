@@ -1,6 +1,8 @@
 package com.example.wft
 
 import android.nfc.NfcAdapter
+import android.app.admin.DevicePolicyManager
+import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -16,6 +18,15 @@ class MainActivity : FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "ec.frederick.escolar/nfc").setMethodCallHandler { call, result ->
             when (call.method) {
+                "pin" -> {
+                    try {
+                        val policy = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+                        val dedicated = policy.isLockTaskPermitted(packageName)
+                        startLockTask()
+                        result.success(if (dedicated) "dedicated" else "pinning")
+                    } catch (_: Exception) { result.error("pin_failed", "Activa la fijación de pantalla en los ajustes de Android.", null) }
+                }
+                "unpin" -> { try { stopLockTask(); result.success(null) } catch (_: Exception) { result.error("unpin_failed", "No se pudo salir de la fijación.", null) } }
                 "cancel" -> { finishScan(null, "Lectura cancelada."); result.success(null) }
                 "scan" -> {
                     val adapter = NfcAdapter.getDefaultAdapter(this)
