@@ -1,0 +1,171 @@
+/* =====================================================================
+   TOKENS DE DISEÑO FWT — v3 "Modern Executive"
+   Unidad Educativa Técnica Particular Frederick Winslow Taylor
+   Paleta oficial intacta: #a81717 · #7a1313 · #e00e0e · #0e1117 · dorado #f59e0b
+   Tema: sigue al sistema (claro/oscuro) y se puede forzar con
+   <html data-theme="light|dark">.
+   ===================================================================== */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/inter-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light;
+
+  /* Identidad FWT preservada */
+  --nav-dark: #0e1117;
+  --brand: #a81717;
+  --brand-text: #a81717;
+  --brand-deep: #7a1313;
+  --accent: #e00e0e;
+  --accent-gold: #f59e0b;
+  --on-brand: #ffffff;
+  --link: #a81717;
+
+  /* Tintes de marca (fondos suaves, selección, hover) */
+  --brand-light: #fef2f2;
+  --brand-soft: rgba(168, 23, 23, 0.08);
+  --brand-ring: rgba(168, 23, 23, 0.22);
+  --brand-border: #fecaca;
+
+  /* Superficies */
+  --bg: #f6f7fb;
+  --bg-accent: radial-gradient(1200px 500px at 85% -10%, rgba(168, 23, 23, 0.07), transparent 60%),
+                radial-gradient(900px 420px at -5% 0%, rgba(14, 17, 23, 0.05), transparent 55%);
+  --surface: #ffffff;
+  --surface-alt: #f1f5f9;
+  --surface-sunken: #f8fafc;
+  --surface-glass: rgba(255, 255, 255, 0.82);
+  --text: #0f172a;
+  --muted: #5a6a7f;
+  --line: #e2e8f0;
+  --line-strong: #cbd5e1;
+  --line-light: #f1f5f9;
+
+  /* Estados semánticos */
+  --ok: #15803d;      --ok-bg: #f0fdf4;     --ok-border: #bbf7d0;
+  --danger: #dc2626;  --danger-bg: #fef2f2; --danger-border: #fecaca;
+  --warn: #b45309;    --warn-bg: #fffbeb;   --warn-border: #fde68a;
+  --info: #0369a1;    --info-bg: #f0f9ff;   --info-border: #bae6fd;
+  --purple: #7e22ce;  --purple-bg: #faf5ff; --purple-border: #e9d5ff;
+
+  /* Medallas */
+  --gold: #f59e0b;    --gold-bg: #fef3c7;
+  --silver: #94a3b8;  --silver-bg: #f1f5f9;
+  --bronze: #b45309;  --bronze-bg: #ffedd5;
+
+  /* Geometría */
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 9999px;
+
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-head: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* Elevación */
+  --shadow-xs: 0 1px 2px 0 rgb(15 23 42 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(15 23 42 / 0.08), 0 1px 2px -1px rgb(15 23 42 / 0.06);
+  --shadow-md: 0 6px 16px -4px rgb(15 23 42 / 0.10), 0 2px 6px -2px rgb(15 23 42 / 0.06);
+  --shadow-lg: 0 18px 40px -12px rgb(15 23 42 / 0.20), 0 6px 14px -6px rgb(15 23 42 / 0.08);
+  --shadow-glow: 0 8px 22px -6px rgba(168, 23, 23, 0.45);
+
+  /* Movimiento */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);           /* salida suave */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* rebote ligero */
+  --dur-fast: 140ms;
+  --dur: 240ms;
+  --dur-slow: 520ms;
+}
+
+/* ---------- Tema oscuro (forzado por el botón) ---------- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --brand: #d42f2f;
+  --brand-text: #f87171;
+  --brand-deep: #9b1c1c;
+  --accent: #f05252;
+  --link: #f87171;
+
+  --brand-light: #2a1014;
+  --brand-soft: rgba(239, 68, 68, 0.14);
+  --brand-ring: rgba(239, 68, 68, 0.38);
+  --brand-border: #6b1d22;
+
+  --bg: #080b13;
+  --bg-accent: radial-gradient(1000px 480px at 85% -10%, rgba(224, 54, 54, 0.13), transparent 60%),
+                radial-gradient(800px 400px at -5% 0%, rgba(59, 130, 246, 0.06), transparent 55%);
+  --surface: #111827;
+  --surface-alt: #1a2332;
+  --surface-sunken: #0d1420;
+  --surface-glass: rgba(13, 20, 32, 0.78);
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --line: #1f2a3c;
+  --line-strong: #2d3b52;
+  --line-light: #161f2e;
+
+  --ok: #4ade80;      --ok-bg: #052e16;     --ok-border: #166534;
+  --danger: #f87171;  --danger-bg: #3b0d0d; --danger-border: #7f1d1d;
+  --warn: #fbbf24;    --warn-bg: #3a1c04;   --warn-border: #854d0e;
+  --info: #7dd3fc;    --info-bg: #07263d;   --info-border: #0c4a6e;
+  --purple: #d8b4fe;  --purple-bg: #2a1245; --purple-border: #581c87;
+
+  --gold-bg: #3a2a05; --silver-bg: #1e293b; --bronze-bg: #36200a;
+
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.5);
+  --shadow-md: 0 8px 20px -6px rgb(0 0 0 / 0.55);
+  --shadow-lg: 0 22px 46px -14px rgb(0 0 0 / 0.7);
+  --shadow-glow: 0 8px 26px -6px rgba(224, 54, 54, 0.5);
+}
+
+/* ---------- Tema oscuro (automático según el sistema) ---------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --brand: #d42f2f;
+    --brand-text: #f87171;
+    --brand-deep: #9b1c1c;
+    --accent: #f05252;
+    --link: #f87171;
+
+    --brand-light: #2a1014;
+    --brand-soft: rgba(239, 68, 68, 0.14);
+    --brand-ring: rgba(239, 68, 68, 0.38);
+    --brand-border: #6b1d22;
+
+    --bg: #080b13;
+    --bg-accent: radial-gradient(1000px 480px at 85% -10%, rgba(224, 54, 54, 0.13), transparent 60%),
+                  radial-gradient(800px 400px at -5% 0%, rgba(59, 130, 246, 0.06), transparent 55%);
+    --surface: #111827;
+    --surface-alt: #1a2332;
+    --surface-sunken: #0d1420;
+    --surface-glass: rgba(13, 20, 32, 0.78);
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --line: #1f2a3c;
+    --line-strong: #2d3b52;
+    --line-light: #161f2e;
+
+    --ok: #4ade80;      --ok-bg: #052e16;     --ok-border: #166534;
+    --danger: #f87171;  --danger-bg: #3b0d0d; --danger-border: #7f1d1d;
+    --warn: #fbbf24;    --warn-bg: #3a1c04;   --warn-border: #854d0e;
+    --info: #7dd3fc;    --info-bg: #07263d;   --info-border: #0c4a6e;
+    --purple: #d8b4fe;  --purple-bg: #2a1245; --purple-border: #581c87;
+
+    --gold-bg: #3a2a05; --silver-bg: #1e293b; --bronze-bg: #36200a;
+
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.5);
+    --shadow-md: 0 8px 20px -6px rgb(0 0 0 / 0.55);
+    --shadow-lg: 0 22px 46px -14px rgb(0 0 0 / 0.7);
+    --shadow-glow: 0 8px 26px -6px rgba(224, 54, 54, 0.5);
+  }
+}

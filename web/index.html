@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co https://www.frederickwinslowtaylor.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co ws://127.0.0.1:* http://127.0.0.1:* ws://localhost:* http://localhost:*; font-src 'self' data:; worker-src 'self' blob:; base-uri 'self'; form-action 'self'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <script>/* Solo en local: muestra qué URL bloquea exactamente la CSP */
+    if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) document.addEventListener("securitypolicyviolation", function (e) {
+      console.warn("[CSP]", e.violatedDirective, "bloqueó:", e.blockedURI, e.sourceFile ? "(" + e.sourceFile + ":" + e.lineNumber + ")" : "");
+    });
+  </script>
+  <title>Acceso al Sistema · Frederick Winslow Taylor</title>
+  <link rel="icon" type="image/png" href="https://www.frederickwinslowtaylor.com/Imagenes/sello.png">
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="auth-body">
+
+<main class="auth-layout">
+  <!-- Panel de Marca Izquierdo (Moderno Editorial) -->
+  <aside class="auth-hero">
+    <div class="hero-content">
+      <div class="hero-seal-container">
+        <img class="hero-seal" data-logo src="https://www.frederickwinslowtaylor.com/Imagenes/sello.png" alt="Sello FWT" width="88" height="88">
+      </div>
+      <span class="hero-motto" data-tagline>#Calidad Más No Cantidad</span>
+      <h1 class="hero-title">Unidad Educativa Técnica Particular<br><span class="highlight" data-name>Frederick Winslow Taylor</span></h1>
+      <p class="hero-subtitle">
+        Plataforma Institucional para la gestión académica, asistencia por sensor NFC, votaciones estudiantiles y seguimiento de Bachillerato Técnico.
+      </p>
+
+      <div class="hero-features">
+        <div class="feature-item">
+          <div class="feature-icon">💳</div>
+          <div>
+            <strong>Sensor NFC / RFID</strong>
+            <p>Control de asistencia diaria única y validación de votaciones.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🎓</div>
+          <div>
+            <strong>Bachillerato Técnico</strong>
+            <p>Mecanizado, Desarrollo de Software, Automotriz y Música.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📊</div>
+          <div>
+            <strong>Gestión de Calificaciones</strong>
+            <p>Subida masiva por Excel y cuadro de honor con privacidad.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Panel de Formulario Derecho (Moderno, Limpio y Flotante) -->
+  <section class="auth-panel">
+    <div class="auth-form-card">
+      <p id="note" role="status" class="callout" hidden></p>
+
+      <!-- Vista: Login -->
+      <section id="v-login">
+        <div class="form-header">
+          <h2>Iniciar Sesión</h2>
+          <p class="muted">Ingresa tus credenciales institucionales para acceder</p>
+        </div>
+        <form id="f-login" class="form" action="#" method="post">
+          <label>Correo Electrónico
+            <input name="email" type="email" autocomplete="username" required maxlength="254" placeholder="usuario@fwt.edu.ec">
+          </label>
+          <label>Contraseña
+            <input name="password" type="password" autocomplete="current-password" required maxlength="128" placeholder="••••••••••">
+          </label>
+          <button class="btn primary" type="submit" style="width: 100%; margin-top: 0.5rem;">Ingresar al Panel</button>
+        </form>
+        <p class="links">
+          <a href="#" data-go="forgot">¿Olvidaste tu contraseña?</a>
+          <a href="#" data-go="register" id="to-register" hidden>Crear una cuenta</a>
+        </p>
+      </section>
+
+      <!-- Vista: Registro -->
+      <section id="v-register" hidden>
+        <div class="form-header">
+          <h2>Crear una Cuenta</h2>
+          <p class="muted">Regístrate para acceder a los servicios escolares</p>
+        </div>
+        <form id="f-register" class="form" action="#" method="post">
+          <label>Nombre Completo
+            <input name="full_name" autocomplete="name" required maxlength="120" placeholder="Nombre y Apellido">
+          </label>
+          <label>Correo Electrónico
+            <input name="email" type="email" autocomplete="email" required maxlength="254" placeholder="ejemplo@correo.com">
+          </label>
+          <label>Contraseña
+            <input name="password" type="password" autocomplete="new-password" required minlength="10" maxlength="128" placeholder="Mínimo 10 caracteres">
+          </label>
+          <label>Confirmar Contraseña
+            <input name="again" type="password" autocomplete="new-password" required maxlength="128" placeholder="Repite la contraseña">
+          </label>
+          <p class="hint">Mínimo 10 caracteres. Se enviará correo de confirmación.</p>
+          <button class="btn primary" type="submit" style="width: 100%;">Registrar Cuenta</button>
+        </form>
+        <p class="links"><a href="#" data-go="login">← Volver a inicio de sesión</a></p>
+      </section>
+
+      <!-- Vista: Recuperación -->
+      <section id="v-forgot" hidden>
+        <div class="form-header">
+          <h2>Recuperar Contraseña</h2>
+          <p class="muted">Te enviaremos las instrucciones a tu correo institucional</p>
+        </div>
+        <form id="f-forgot" class="form" action="#" method="post">
+          <label>Correo Electrónico
+            <input name="email" type="email" autocomplete="email" required maxlength="254" placeholder="usuario@fwt.edu.ec">
+          </label>
+          <button class="btn primary" type="submit" style="width: 100%;">Enviar enlace de recuperación</button>
+        </form>
+        <p class="links"><a href="#" data-go="login">← Volver a iniciar sesión</a></p>
+      </section>
+
+      <!-- Vista: Resetear -->
+      <section id="v-reset" hidden>
+        <div class="form-header">
+          <h2>Nueva Contraseña</h2>
+          <p class="muted">Define tu nueva clave de acceso segura</p>
+        </div>
+        <form id="f-reset" class="form" action="#" method="post">
+          <label>Nueva Contraseña
+            <input name="password" type="password" autocomplete="new-password" required minlength="10" maxlength="128">
+          </label>
+          <label>Confirmar Contraseña
+            <input name="again" type="password" autocomplete="new-password" required maxlength="128">
+          </label>
+          <button class="btn primary" type="submit" style="width: 100%;">Guardar Nueva Contraseña</button>
+        </form>
+      </section>
+    </div>
+  </section>
+</main>
+
+<script type="module" src="js/auth-page.js"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+# Herramientas y archivos locales
+.local-tools/
+.codex/
+.agents/
+desktop.ini
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# SDK de Flutter, cachés y compilados (el código propio sí se versiona)
+/flutter/flutter/
+**/.dart_tool/
+**/.flutter-plugins*
+**/build/
+**/.gradle/
+**/.idea/
+**/*.iml
+**/local.properties
+**/GeneratedPluginRegistrant.java
+**/gradlew
+**/gradlew.bat
+**/gradle-wrapper.jar
+node_modules/
+supabase/.temp/
+supabase/.branches/
+
+# Scripts históricos que sincronizan usuarios como administradores.
+# Se conservan localmente; el despliegue usa migraciones revisadas.
+/supabase/INSTALACION_TOTAL_DESDE_CERO.sql
+/supabase/MIGRACION_COMPLETA_FWT.sql

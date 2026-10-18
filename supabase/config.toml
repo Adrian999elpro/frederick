@@ -1,0 +1,9 @@
+project_id = "frederick"
+
+# El inicio de sesión es público y valida credenciales dentro del servidor.
+[functions.auth-login]
+verify_jwt = false
+
+# Valida el JWT y el permiso users.manage dentro de requirePermission.
+[functions.admin-users]
+verify_jwt = true
