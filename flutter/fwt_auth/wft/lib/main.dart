@@ -97,7 +97,29 @@ class _SchoolPortalState extends State<SchoolPortal> {
   Widget build(BuildContext context) => PopScope(canPop: false, onPopInvokedWithResult: (didPop, result) { if (!didPop) _back(); },
     child: Scaffold(body: SafeArea(child: Column(children: [
       if (_progress < 100 && !_failed) LinearProgressIndicator(value: _progress / 100),
-      if (_scanning) Material(color: const Color(0xfff7e2ad), child: ListTile(leading: const Icon(Icons.nfc), title: const Text('Acerca tu tarjeta al teléfono'), trailing: TextButton(onPressed: () => _nfc.invokeMethod<void>('cancel'), child: const Text('Cancelar')))),
+      if (_scanning)
+        Material(
+          color: const Color(0xfff7e2ad),
+          child: Semantics(
+            liveRegion: true,
+            child: ListTile(
+              leading: const SizedBox(
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  color: Color(0xff931d2b),
+                ),
+              ),
+              title: const Text('Acerca la tarjeta al teléfono'),
+              subtitle: const Text('Buscando la tarjeta NFC…'),
+              trailing: TextButton(
+                onPressed: () => _nfc.invokeMethod<void>('cancel'),
+                child: const Text('Cancelar'),
+              ),
+            ),
+          ),
+        ),
       Expanded(child: _failed ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
         const Icon(Icons.wifi_off, size: 48), const SizedBox(height: 16), const Text('No se pudo conectar con Frederick. Revisa tu conexión a internet.', textAlign: TextAlign.center),
         const SizedBox(height: 16), FilledButton(onPressed: () { setState(() => _failed = false); _web.reload(); }, child: const Text('Reintentar')),
