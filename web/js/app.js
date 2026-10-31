@@ -1,7 +1,7 @@
 // Shell de la aplicación FWT: Navegación por permisos y carga diferida de cada sección.
 import { CONFIG, requireAccess, can, logout, $, esc, showError } from "./core.js?v=20261018-community";
 import { profilePhotoUrl } from "./profile-photo.js?v=20261018-community";
-import { setupTerminal } from "./terminal.js?v=20261018-community";
+import { setupTerminal } from "./terminal.js?v=20261031-app-admin-card";
 
 const VIEWS = [
   { id: "forum", title: "💬 Foro del colegio", load: () => import("./views/chat.js?v=20261018-community") },
@@ -12,7 +12,7 @@ const VIEWS = [
   { id: "ranking",       title: "🏆 Ranking Escolar",       permission: "ranking.read",       load: () => import("./views/ranking.js?v=20261018-community") },
   { id: "grades",        title: "📊 Calificaciones",        permission: "grades.read",        load: () => import("./views/grades.js?v=20261018-community") },
   { id: "subjects",      title: "📚 Materias y Docentes",   permission: "grades.read",        load: () => import("./views/subjects.js?v=20261018-community") },
-  { id: "cards",         title: "💳 Tarjetas NFC",          permission: "nfc.manage",         load: () => import("./views/cards.js?v=20261031-admin-card") },
+  { id: "cards",         title: "💳 Tarjetas NFC",          permission: "nfc.manage",         load: () => import("./views/cards.js?v=20261031-app-admin-card") },
   { id: "attendance", title: "📲 Registro de asistencia", load: () => import("./views/attendance.js?v=20261018-community") },
   { id: "council", title: "🗳️ Consejo estudiantil", load: () => import("./views/polls.js?v=20261018-community") },
   { id: "custom-polls", title: "📊 Votaciones personalizadas", load: () => import("./views/polls.js?v=20261018-community") },

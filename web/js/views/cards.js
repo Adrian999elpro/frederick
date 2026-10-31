@@ -1,7 +1,6 @@
 // Vista: Administración de Tarjetas NFC / RFID
 // Vinculación a cuentas de usuario y definición de rangos institucionales
 import { sb, $, $$, esc, toast, confirmBox, withBusy, showError } from "../core.js?v=20261018-community";
-import { readCard } from "../nfc-reader.js?v=20261018-community";
 
 export async function render(root, access) {
   const canManage = access.permissions.includes("nfc.manage") || access.role === "admin";
@@ -14,18 +13,6 @@ export async function render(root, access) {
       </div>
       ${canManage ? `<button id="btn-new-card" class="btn primary sm">+ Vincular Nueva Tarjeta</button>` : ''}
     </header>
-
-    ${access.role === "admin" && canManage ? `
-      <section id="initial-admin-card-setup" class="card" hidden style="margin-bottom: 1.25rem; border-color: var(--brand-text);">
-        <div class="row" style="justify-content: space-between; gap: 1rem; flex-wrap: wrap; align-items: center;">
-          <div>
-            <h3 style="margin: 0 0 .35rem;">🔐 Registrar tarjeta administrativa</h3>
-            <p class="muted" style="margin: 0;">Acerca la tarjeta NFC a este teléfono. Se vinculará a tu cuenta de administrador y esta opción aparecerá una sola vez.</p>
-          </div>
-          <button id="btn-register-initial-admin-card" class="btn primary">📲 Leer y registrar tarjeta</button>
-        </div>
-      </section>
-    ` : ''}
 
     <div class="card">
       <div class="row" style="justify-content: space-between; margin-bottom: 1rem; gap: 1rem; flex-wrap: wrap;">
@@ -112,7 +99,6 @@ export async function render(root, access) {
   const searchInput = $("#search-card", root);
   const filterRank = $("#filter-rank", root);
   const formCard = $("#f-card", root);
-  const initialAdminCardSetup = $("#initial-admin-card-setup", root);
 
   let allCards = [];
   let allUsers = [];
@@ -148,41 +134,6 @@ export async function render(root, access) {
 
     allCards = data || [];
     applyFilters();
-  }
-
-  async function refreshInitialAdminCardSetup() {
-    if (!initialAdminCardSetup) return;
-    const { data: alreadyRegistered, error } = await sb.rpc("admin_card_registration_status");
-    if (error) {
-      showError(error, "No se pudo comprobar el registro de la tarjeta administrativa.");
-      return;
-    }
-    if (alreadyRegistered) initialAdminCardSetup.remove();
-    else initialAdminCardSetup.hidden = false;
-  }
-
-  async function registerInitialAdminCard(button) {
-    if (!await confirmBox("Esta tarjeta quedará vinculada a tu cuenta de administrador y el registro inicial se podrá hacer una sola vez. Acércala al teléfono cuando se indique.", "Leer tarjeta")) return;
-
-    await withBusy(button, async () => {
-      try {
-        toast("Acerca la tarjeta administrativa al lector NFC…");
-        const cardUid = await readCard();
-        const { error } = await sb.rpc("register_initial_admin_card", { p_card_uid: cardUid });
-        if (error) throw error;
-
-        initialAdminCardSetup.remove();
-        toast("Tarjeta administrativa registrada. El botón ya no volverá a aparecer.");
-        await loadCards();
-      } catch (error) {
-        if (error?.message?.includes("admin_card_already_registered")) {
-          initialAdminCardSetup.remove();
-          toast("La tarjeta administrativa ya fue registrada.", "err");
-        } else {
-          showError(error, "No se pudo registrar la tarjeta. Inténtalo otra vez.");
-        }
-      }
-    });
   }
 
   function applyFilters() {
@@ -311,10 +262,6 @@ export async function render(root, access) {
       dlg.showModal();
     });
 
-    $("#btn-register-initial-admin-card", root)?.addEventListener("click", (event) => {
-      registerInitialAdminCard(event.currentTarget);
-    });
-
     $("#btn-cancel-card", root).addEventListener("click", () => dlg.close());
 
     // Submit formulario (insert o update de vinculación)
@@ -343,14 +290,11 @@ export async function render(root, access) {
         else {
           toast(cardId ? "Tarjeta y rango actualizados exitosamente" : "Tarjeta NFC vinculada exitosamente");
           dlg.close();
-          if (cardType === "admin") {
-            if (initialAdminCardSetup) initialAdminCardSetup.remove();
-          }
           await loadCards();
         }
       });
     });
   }
 
-  await Promise.all([loadUsers(), loadCards(), refreshInitialAdminCardSetup()]);
+  await Promise.all([loadUsers(), loadCards()]);
 }
