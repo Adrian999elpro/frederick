@@ -70,6 +70,8 @@ const FUN_FACTS = [
   "Calidad más no cantidad: este es el lema de nuestra unidad educativa.",
 ];
 
+// El sello va dentro de la web. Si una copia vieja de config.js (en caché) aún apunta a otro sitio, se usa el local.
+const LOGO = String(CONFIG.LOGO_URL).startsWith("img/") ? CONFIG.LOGO_URL : "img/sello.png";
 const roleLabel = (r) => ROLE_NAMES[r] ?? (String(r || "usuario").replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()));
 const split = (title) => { const i = title.indexOf(" "); return { icon: title.slice(0, i), label: title.slice(i + 1) }; };
 const greeting = () => { const h = new Date().getHours(); return h < 12 ? "Buenos días" : h < 19 ? "Buenas tardes" : "Buenas noches"; };
@@ -79,7 +81,7 @@ if (access) boot(access);
 
 
 function boot(access) {
-  const logoEl = $("[data-logo]"); if (logoEl) logoEl.src = CONFIG.LOGO_URL;
+  const logoEl = $("[data-logo]"); if (logoEl) logoEl.src = LOGO;
   const shortEl = $("[data-short]"); if (shortEl) shortEl.textContent = CONFIG.APP_SHORT;
   document.title = `${CONFIG.APP_SHORT} · Panel`;
   const setName = (n) => { $("#who").textContent = n; };
@@ -195,7 +197,7 @@ function boot(access) {
     const tile = (v, gi, i) => { const { icon, label } = split(v.title); return `<a class="tile g${gi}" href="#${v.id}" style="--i:${i}" data-text="${esc(norm(`${label} ${HELP[v.id] ?? ""}`))}"><span class="tile-icon" aria-hidden="true">${icon}</span><span class="tile-body"><strong>${esc(label)}</strong><span>${esc(HELP[v.id] ?? "")}</span></span><span class="tile-go" aria-hidden="true">→</span></a>`; };
     main.innerHTML = `
       <section class="hero-home">
-        <img class="hero-seal" src="${esc(CONFIG.LOGO_URL)}" alt="" width="220" height="220">
+        <img class="hero-seal" src="${esc(LOGO)}" alt="" width="220" height="220">
         <div class="hero-text">
           <span class="chip">${esc(date)}</span>
           <h1>${greeting()}, ${first} <span class="wave" aria-hidden="true">👋</span></h1>

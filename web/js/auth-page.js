@@ -38,7 +38,9 @@ const recovery = createPasswordRecovery({
 });
 
 // Identidad desde la configuración
-$$("[data-logo]").forEach((i) => { i.src = CONFIG.LOGO_URL; });
+// El sello va dentro de la web. Si una copia vieja de config.js (en caché) aún apunta a otro sitio, se usa el local.
+const LOGO = String(CONFIG.LOGO_URL).startsWith("img/") ? CONFIG.LOGO_URL : "img/sello.png";
+$$("[data-logo]").forEach((i) => { i.src = LOGO; });
 const nameEl = $("[data-name]");
 if (nameEl) nameEl.textContent = CONFIG.APP_NAME.replace(/^Unidad Educativa Técnica Particular\s+/, "");
 const taglineEl = $("[data-tagline]");
