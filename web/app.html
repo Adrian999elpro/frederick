@@ -2,67 +2,76 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co https://www.frederickwinslowtaylor.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co ws://127.0.0.1:* http://127.0.0.1:* ws://localhost:* http://localhost:*; font-src 'self' data:; worker-src 'self' blob:; base-uri 'self'; form-action 'self'; object-src 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co ws://127.0.0.1:* http://127.0.0.1:* ws://localhost:* http://localhost:*; font-src 'self' data:; worker-src 'self' blob:; base-uri 'self'; form-action 'self'; object-src 'none'">
   <meta name="referrer" content="no-referrer">
-  <script>/* Solo en local: muestra qué URL bloquea exactamente la CSP */
+  <meta name="theme-color" content="#0e1117">
+  <script>/* Aplica el tema guardado antes de pintar (evita el destello) */
+    try { var t = localStorage.getItem("fwt_theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+    /* Solo en local: muestra qué URL bloquea exactamente la CSP */
     if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) document.addEventListener("securitypolicyviolation", function (e) {
       console.warn("[CSP]", e.violatedDirective, "bloqueó:", e.blockedURI, e.sourceFile ? "(" + e.sourceFile + ":" + e.lineNumber + ")" : "");
     });
   </script>
-  <title>Panel Institucional · Frederick Winslow Taylor</title>
-  <link rel="icon" type="image/png" href="https://www.frederickwinslowtaylor.com/Imagenes/sello.png">
+  <title>Panel · Frederick Winslow Taylor</title>
+  <link rel="icon" type="image/png" href="img/favicon.png">
+  <link rel="apple-touch-icon" href="img/sello-192.png">
   <link rel="stylesheet" href="css/theme.css">
   <link rel="stylesheet" href="css/app.css?v=20261018-community">
+  <link rel="stylesheet" href="css/redesign.css?v=20261101-redesign">
 </head>
 <body class="app-body">
 <a class="skip-link" href="#main">Ir al contenido</a>
 
-<!-- Header Moderno y Unificado FWT -->
-<header class="modern-header">
-  <div class="header-top">
-    <div class="brand-cluster">
-      <div class="seal-frame">
-        <img data-logo src="https://www.frederickwinslowtaylor.com/Imagenes/sello.png" alt="Sello FWT" width="40" height="40">
-      </div>
-      <div class="brand-titles">
-        <div class="brand-main" data-short>FREDERICK WINSLOW TAYLOR</div>
-        <div class="brand-sub">Unidad Educativa Técnica Particular</div>
-      </div>
-      <span class="motto-chip">#Calidad Más No Cantidad</span>
-    </div>
-
-    <div class="header-actions">
-      <a class="user-profile-badge" href="#profile" aria-label="Abrir mi perfil">
-        <div class="user-avatar-circle" id="header-avatar">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-        </div>
-        <span id="who" class="user-text-name">Usuario</span>
+<div class="shell">
+  <!-- Menú lateral (en el teléfono se abre como cajón) -->
+  <aside class="side" id="side" aria-label="Menú principal">
+    <a class="side-brand" href="#home" aria-label="Ir al inicio">
+      <img data-logo src="img/sello.png" alt="" width="46" height="46">
+      <span class="brand-text"><b data-short>FWT</b><small>Unidad Educativa Técnica Particular</small></span>
+    </a>
+    <nav id="nav" class="side-nav" aria-label="Secciones"></nav>
+    <div class="side-user">
+      <a class="side-me" href="#profile" aria-label="Abrir mi perfil">
+        <span class="avatar" id="header-avatar" aria-hidden="true">👤</span>
+        <span class="me-text"><b id="who">Usuario</b><small id="role-label"></small></span>
       </a>
-      <button id="logout" class="btn-logout-modern" type="button" title="Cerrar sesión">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
-        <span>Salir</span>
+      <button id="logout" class="icon-btn" type="button" title="Cerrar sesión" aria-label="Cerrar sesión">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
       </button>
     </div>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+
+  <div class="shell-main">
+    <header class="topbar">
+      <button id="menu-toggle" class="icon-btn only-small" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="side">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+      </button>
+      <div class="top-title">
+        <span class="crumb" id="crumb">Frederick Winslow Taylor</span>
+        <p class="top-name" id="page-title">Inicio</p>
+      </div>
+      <button id="open-search" class="search-btn" type="button" aria-label="Buscar o ir a una sección" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <span>Buscar o ir a…</span><kbd>Ctrl K</kbd>
+      </button>
+      <button id="theme-toggle" class="icon-btn theme-toggle" type="button" aria-pressed="false" title="Cambiar tema">
+        <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+    </header>
+
+    <div id="top-notices"></div>
+    <main id="main" class="main" tabindex="-1"></main>
   </div>
 
-  <!-- Barra de Navegación Moderna estilo Tabs/Pill -->
-  <nav class="modern-nav-bar" aria-label="Navegación principal">
-    <div class="nav-shortcuts">
-      <a href="#home" class="nav-link" data-shortcut="home">⌂ Inicio</a>
-      <a href="#profile" class="nav-link" data-shortcut="profile">👤 Mi perfil</a>
-      <button id="menu-toggle" class="nav-link" type="button" aria-expanded="false" aria-controls="nav">☰ Todas las opciones</button>
-    </div>
-    <div id="nav" class="menu-panel" hidden></div>
-  </nav>
-</header>
+  <!-- Barra inferior (solo teléfono) -->
+  <nav class="tabbar" id="tabbar" aria-label="Accesos rápidos"></nav>
+</div>
 
-<!-- Área de Contenido Principal -->
-<main id="main" class="main" tabindex="-1"></main>
-
-<!-- Notificaciones Toast Flotantes -->
 <div id="toasts" class="toasts" aria-live="polite"></div>
 
-<script type="module" src="js/app.js?v=20261031-app-admin-card"></script>
+<script type="module" src="js/app.js?v=20261101-redesign"></script>
 </body>
 </html>

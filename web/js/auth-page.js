@@ -1,6 +1,28 @@
 // Pantalla pública: inicio de sesión, registro, recuperación y restablecimiento de contraseña.
 import { sb, CONFIG, $, $$, getAccess, login, withBusy } from "./core.js?v=20261018-community";
 import { createPasswordRecovery } from "./password-recovery.js?v=20261018-community";
+import { initTheme } from "./ui.js?v=20261018-community";
+
+// Tema claro/oscuro, ojito para ver la contraseña y aviso de mayúsculas
+initTheme($("#theme-toggle"));
+$$("input[type=password]").forEach((input) => {
+  const wrap = document.createElement("span");
+  wrap.className = "pw";
+  input.replaceWith(wrap);
+  const eye = document.createElement("button");
+  eye.type = "button"; eye.className = "pw-eye"; eye.textContent = "👁️"; eye.title = "Mostrar contraseña"; eye.setAttribute("aria-label", "Mostrar contraseña");
+  eye.addEventListener("click", () => {
+    const show = input.type === "password";
+    input.type = show ? "text" : "password";
+    eye.textContent = show ? "🙈" : "👁️";
+    const lbl = show ? "Ocultar contraseña" : "Mostrar contraseña"; eye.title = lbl; eye.setAttribute("aria-label", lbl);
+  });
+  const caps = document.createElement("p");
+  caps.className = "caps-note"; caps.hidden = true; caps.textContent = "⇪ Tienes las mayúsculas activadas.";
+  input.addEventListener("keyup", (e) => { caps.hidden = !e.getModifierState?.("CapsLock"); });
+  input.addEventListener("blur", () => { caps.hidden = true; });
+  wrap.append(input, eye, caps);
+});
 
 const VIEWS = ["login", "register", "forgot", "verify", "reset"];
 const MSG = {

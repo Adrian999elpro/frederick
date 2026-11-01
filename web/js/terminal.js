@@ -5,11 +5,11 @@ export function setupTerminal(access){
  let enabled=!!window.FrederickTerminal&&access.permissions.includes('terminal.operate'),mode=sessionStorage.getItem('fwt_terminal_mode')||'announcements';
  if(!MODES.some(m=>m[0]===mode))mode='announcements';
  const bar=document.createElement('section');bar.className='terminal-bar';bar.hidden=!enabled;bar.innerHTML='<strong id="terminal-label">Terminal escolar</strong><div class="row"><a class="btn ghost" href="#announcements" data-consult>Anuncios</a><a class="btn ghost" href="#kiosk-profile" data-consult>Mi perfil y notas</a><button class="btn primary" id="terminal-control">Tarjeta del encargado</button></div><p id="terminal-system" class="hint" role="status"></p>';
- document.querySelector('.modern-header').after(bar);
+ document.querySelector('#top-notices').append(bar);
  if(window.FrederickNfc&&access.role==='admin'&&access.permissions.includes('nfc.manage')){
   const setup=document.createElement('section');setup.className='card';setup.hidden=true;setup.style.cssText='margin:1rem 1rem 0;border-color:var(--brand-text)';
   setup.innerHTML='<div class="row" style="justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center"><div><h2 style="margin:0 0 .35rem">🔐 Registrar tarjeta administrativa</h2><p class="muted" style="margin:0">Esta opción es solo para la app. Acerca la tarjeta al teléfono; quedará vinculada a tu cuenta y se registrará una sola vez.</p></div><button type="button" class="btn primary" id="register-initial-admin-card">📲 Registrar tarjeta</button></div>';
-  document.querySelector('.modern-header').after(setup);
+  document.querySelector('#top-notices').append(setup);
   const registerButton=$('#register-initial-admin-card',setup);
   sb.rpc('admin_card_registration_status').then(({data,error})=>{
    if(error){showError(error,'No se pudo comprobar el registro de la tarjeta administrativa.');return;}
