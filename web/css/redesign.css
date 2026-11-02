@@ -309,3 +309,15 @@
   .auth-top { position: fixed; top: calc(.7rem + env(safe-area-inset-top)); right: .75rem; }
   .auth-top .icon-btn { background: rgba(255, 255, 255, .14); color: #fff; border-color: rgba(255, 255, 255, .3); backdrop-filter: blur(6px); }
 }
+
+/* --- Correcciones (selector personalizado y aros de foco) --- */
+/* El span de medida reserva el ancho de la opción más larga pero nunca se ve */
+.sel-text { flex: 1; min-width: 0; display: grid; }
+.sel-text > .sel-value, .sel-text > .sel-sizer { grid-area: 1 / 1; min-width: 0; }
+.sel-text > .sel-sizer { visibility: hidden; height: 0; overflow: hidden; white-space: nowrap; pointer-events: none; font-weight: 600; }
+/* Campos: un solo aro (el rojo de la marca), sin el contorno dorado encima */
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; }
+/* Botones y enlaces: contorno fino, solo al navegar con teclado */
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent-gold); outline-offset: 2px; }
+button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
+.btn:focus-visible { border-radius: 999px; }
