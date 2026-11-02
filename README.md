@@ -16,7 +16,7 @@ Usuarios y permisos, materias y docentes, notas con importación CSV, anuncios, 
 - `supabase/migrations/`: esquema y cambios de seguridad.
 - `supabase/functions/`: inicio de sesión y administración de usuarios en el servidor.
 - `supabase/tests/`: pruebas SQL de desarrollo; nunca ejecutarlas en producción.
-- `flutter/fwt_auth/`: módulo móvil y ejemplo; consultar sus límites en `ANALISIS.md`.
+- `flutter/fwt_auth/wft/`: app Android nativa (Flutter) con carnet, ranking, votaciones y terminal NFC. `flutter/legacy/` guarda código anterior que ya no se compila.
 - `ANALISIS.md`: explicación del código y hallazgos.
 - `DESPLIEGUE.md`: estado y mantenimiento del despliegue.
 
@@ -40,4 +40,4 @@ Para una instalación nueva, revisar y aplicar las migraciones individuales en o
 
 ## Android
 
-El módulo móvil se conserva como código fuente. El proyecto `wft` aún contiene la aplicación de demostración de Flutter; no es un APK funcional del sistema escolar. Es necesario integrar el ejemplo con el proyecto Android, configurar credenciales públicas y validar el lector en un dispositivo físico.
+La app Android es nativa (ya no muestra la web dentro de un WebView) y usa los mismos servicios de Supabase que la web. Se compila en GitHub Actions; consulta `ANDROID.md`. Falta validar el lector NFC, la fijación de pantalla y las fotos en un teléfono real.

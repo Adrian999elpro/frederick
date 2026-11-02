@@ -1,20 +1,21 @@
 name: wft
-description: Frederick Escolar para Android, con portal actualizado, fotos y lector NFC.
+description: Frederick Escolar, la app nativa del colegio con carnet, votaciones y terminal NFC.
 publish_to: none
-version: 1.2.0+3
+version: 2.0.0+4
 environment:
   sdk: ^3.13.5
 dependencies:
   flutter:
     sdk: flutter
-  webview_flutter: 4.14.1
-  webview_flutter_android: 4.14.1
-  image_picker: 1.2.4
-  http: 1.6.0
+  supabase_flutter: ^2.8.0
+  flutter_secure_storage: ^9.2.2
+  shared_preferences: ^2.3.0
+  image_picker: ^1.1.2
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: 6.0.0
+  flutter_lints: ^6.0.0
 flutter:
   uses-material-design: true
-
+  assets:
+    - assets/logo.png

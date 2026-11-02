@@ -29,11 +29,24 @@ android {
         versionName = flutter.versionName
     }
 
+    // Firma de publicación: si existe un keystore propio (variables de entorno, ver ANDROID.md)
+    // todas las versiones se firman con la misma clave y los teléfonos pueden actualizar sin desinstalar.
+    val keystorePath: String? = System.getenv("FWT_KEYSTORE_PATH")
+    signingConfigs {
+        if (keystorePath != null) {
+            create("release") {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("FWT_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("FWT_KEY_ALIAS")
+                keyPassword = System.getenv("FWT_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Sin keystore propio se usa la clave de depuración (solo para pruebas).
+            signingConfig = if (keystorePath != null) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
         }
     }
 }

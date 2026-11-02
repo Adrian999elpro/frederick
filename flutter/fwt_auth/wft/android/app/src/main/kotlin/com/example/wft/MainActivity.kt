@@ -31,7 +31,7 @@ class MainActivity : FlutterActivity() {
                 "scan" -> {
                     val adapter = NfcAdapter.getDefaultAdapter(this)
                     if (adapter == null || !adapter.isEnabled) {
-                        result.error("unavailable", "Este teléfono no tiene NFC o está desactivado. Puedes escribir el código de la tarjeta en la web.", null)
+                        result.error("unavailable", "Este teléfono no tiene NFC o está desactivado. Puedes escribir el código de la tarjeta a mano.", null)
                     } else if (pending != null) {
                         result.error("busy", "Ya hay una lectura en curso.", null)
                     } else {
@@ -40,7 +40,7 @@ class MainActivity : FlutterActivity() {
                             adapter.enableReaderMode(this, { tag ->
                                 val uid = tag.id.joinToString(":") { "%02X".format(it.toInt() and 0xff) }
                                 runOnUiThread { finishScan(uid, null) }
-                            }, NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or NfcAdapter.FLAG_READER_NFC_F or NfcAdapter.FLAG_READER_NFC_V or NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, Bundle())
+                            }, NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK or NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS, Bundle())
                             handler.postDelayed(timeout, 30000)
                         } catch (_: Exception) { finishScan(null, "No se pudo iniciar el lector NFC.") }
                     }

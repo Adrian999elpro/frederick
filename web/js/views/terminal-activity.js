@@ -8,6 +8,15 @@ const EVENT_NAMES = {
   poll_status: "Estado de votación cambiado",
   applications_toggled: "Postulaciones abiertas o cerradas",
   unlock: "Teléfono desbloqueado",
+  card_registered: "Persona y tarjeta registradas",
+  card_assigned: "Tarjeta asignada",
+  card_replaced: "Tarjeta reemplazada",
+  card_blocked: "Tarjeta bloqueada o desbloqueada",
+  activation_code: "Código de activación entregado",
+  account_activated: "Cuenta web activada",
+  pin_set: "PIN de administrador creado o cambiado",
+  pin_failed: "PIN de administrador incorrecto",
+  pin_reset: "PIN de administrador restablecido",
 };
 
 export async function render(root) {

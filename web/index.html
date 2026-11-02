@@ -67,6 +67,7 @@
         </form>
         <p class="links">
           <a href="#" data-go="forgot">¿Olvidaste tu contraseña?</a>
+          <a href="#" data-go="activate">Primera vez: activar mi cuenta</a>
           <a href="#" data-go="register" id="to-register" hidden>Crear una cuenta</a>
         </p>
       </section>
@@ -94,6 +95,34 @@
           <button class="btn primary" type="submit" style="width: 100%;">Registrar Cuenta</button>
         </form>
         <p class="links"><a href="#" data-go="login">← Volver a inicio de sesión</a></p>
+      </section>
+
+      <!-- Vista: Activar cuenta con el código del terminal -->
+      <section id="v-activate" hidden>
+        <div class="form-header">
+          <h2>Activa tu cuenta 🔓</h2>
+          <p class="muted">Acerca tu tarjeta al terminal del colegio y pulsa «Activar mi acceso a la web» para obtener tu código. Dura 1 día y sirve una sola vez.</p>
+        </div>
+        <form id="f-activate" class="form" action="#" method="post">
+          <label>Código del terminal
+            <input class="recovery-code" name="code" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" required minlength="8" maxlength="9" placeholder="ABCD-2345" aria-describedby="act-help">
+          </label>
+          <label>Tu correo electrónico
+            <input name="email" type="email" autocomplete="email" required maxlength="254" placeholder="tucorreo@gmail.com">
+          </label>
+          <label>Repite tu correo
+            <input name="email2" type="email" autocomplete="off" required maxlength="254" placeholder="tucorreo@gmail.com">
+          </label>
+          <label>Elige tu contraseña
+            <input name="password" type="password" autocomplete="new-password" required minlength="10" maxlength="128" placeholder="Mínimo 10 caracteres">
+          </label>
+          <label>Repite tu contraseña
+            <input name="again" type="password" autocomplete="new-password" required maxlength="128" placeholder="Repite la contraseña">
+          </label>
+          <p class="hint" id="act-help">Usa un correo que revises: ahí recuperarás tu contraseña si la olvidas.</p>
+          <button class="btn primary" type="submit" style="width: 100%;">Activar mi cuenta</button>
+        </form>
+        <p class="links"><a href="#" data-go="login">← Volver a iniciar sesión</a></p>
       </section>
 
       <!-- Vista: Recuperación -->
@@ -152,7 +181,7 @@
   </section>
 </main>
 
-<script type="module" src="js/auth-page.js?v=20261101-logo"></script>
+<script type="module" src="js/auth-page.js?v=20261102-activate"></script>
 </body>
 </html>
 

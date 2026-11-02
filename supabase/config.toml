@@ -7,3 +7,11 @@ verify_jwt = false
 # Valida el JWT y el permiso users.manage dentro de requirePermission.
 [functions.admin-users]
 verify_jwt = true
+
+# Pública: el código de activación hace de credencial; limita intentos por IP.
+[functions.activate-account]
+verify_jwt = false
+
+# Valida el JWT y que el llamador sea administrador (can_register_cards) dentro de la función.
+[functions.terminal-register-card]
+verify_jwt = true

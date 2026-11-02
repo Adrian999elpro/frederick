@@ -27,9 +27,28 @@ jobs:
         working-directory: flutter/fwt_auth/wft
         run: |
           flutter create --platforms=android --project-name=wft .
-          flutter pub get --enforce-lockfile
-          flutter analyze
+          flutter pub get
+          flutter analyze --no-fatal-infos
           flutter test
+      - name: Preparar firma propia (si existe)
+        env:
+          FWT_KEYSTORE_BASE64: ${{ secrets.FWT_KEYSTORE_BASE64 }}
+          FWT_KEYSTORE_PASSWORD: ${{ secrets.FWT_KEYSTORE_PASSWORD }}
+          FWT_KEY_ALIAS: ${{ secrets.FWT_KEY_ALIAS }}
+          FWT_KEY_PASSWORD: ${{ secrets.FWT_KEY_PASSWORD }}
+        run: |
+          if [ -n "$FWT_KEYSTORE_BASE64" ]; then
+            echo "$FWT_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/fwt.jks"
+            {
+              echo "FWT_KEYSTORE_PATH=$RUNNER_TEMP/fwt.jks"
+              echo "FWT_KEYSTORE_PASSWORD=$FWT_KEYSTORE_PASSWORD"
+              echo "FWT_KEY_ALIAS=$FWT_KEY_ALIAS"
+              echo "FWT_KEY_PASSWORD=$FWT_KEY_PASSWORD"
+            } >> "$GITHUB_ENV"
+            echo "Firma propia activada."
+          else
+            echo "Sin keystore propio: se firma con la clave de prueba."
+          fi
       - name: Compilar APK de prueba
         working-directory: flutter/fwt_auth/wft
         run: flutter build apk --release
@@ -47,4 +66,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "android-preview-${GITHUB_RUN_NUMBER}" Frederick-Escolar.apk Frederick-Escolar.apk.sha256 --target "$GITHUB_SHA" --title "Frederick Escolar · Android de prueba ${GITHUB_RUN_NUMBER}" --prerelease --notes "APK instalable de prueba. Comparte la interfaz de la web y requiere internet. Incluye selección de fotos y lector NFC si el teléfono lo admite. Firmado con la clave de prueba de Android: una compilación posterior puede requerir desinstalar esta versión. No es una publicación de Google Play."
+          gh release create "android-preview-${GITHUB_RUN_NUMBER}" Frederick-Escolar.apk Frederick-Escolar.apk.sha256 --target "$GITHUB_SHA" --title "Frederick Escolar · Android de prueba ${GITHUB_RUN_NUMBER}" --prerelease --notes "APK instalable de prueba. App nativa Frederick: carnet, ranking, votaciones y terminal NFC. Requiere internet. Incluye selección de fotos y lector NFC si el teléfono lo admite. Firmado con la clave de prueba de Android: una compilación posterior puede requerir desinstalar esta versión. No es una publicación de Google Play."

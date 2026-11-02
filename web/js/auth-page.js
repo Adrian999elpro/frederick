@@ -24,13 +24,15 @@ $$("input[type=password]").forEach((input) => {
   wrap.append(input, eye, caps);
 });
 
-const VIEWS = ["login", "register", "forgot", "verify", "reset"];
+const VIEWS = ["login", "register", "activate", "forgot", "verify", "reset"];
 const MSG = {
   idle: ["Tu sesión se cerró por inactividad.", "warn"],
   disabled: ["Tu cuenta no tiene acceso activo.", "err"],
   changed: ["Contraseña actualizada. Inicia sesión con la nueva."],
+  activated: ["¡Cuenta activada! Entra con tu correo y la contraseña que elegiste."],
 };
 const params = new URLSearchParams(location.search);
+const wantsActivate = params.get("view") === "activate";
 const recovering = ["reset", "verify", "forgot"].includes(params.get("view")) || location.hash.includes("type=recovery");
 const recovery = createPasswordRecovery({
   auth: sb.auth,
@@ -82,6 +84,7 @@ if (recovering) {
   }
 }
 
+if (wantsActivate) show("activate");
 if (MSG[params.get("msg")]) note(...MSG[params.get("msg")]);
 
 // ¿Ya hay una sesión válida? Entrar directo (salvo si se está restableciendo la contraseña).
@@ -192,5 +195,32 @@ $("#f-reset").addEventListener("submit", async (e) => {
       sessionStorage.removeItem("fwt_access");
       location.replace("index.html?msg=changed");
     } catch (err) { note(err.message, "err"); }
+  });
+});
+
+// Activar la cuenta: código del terminal + correo + contraseña (Edge Function activate-account)
+const codeInput = $("#f-activate").elements.code;
+codeInput.addEventListener("input", () => {
+  const raw = codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+  codeInput.value = raw.length > 4 ? `${raw.slice(0, 4)}-${raw.slice(4)}` : raw;
+});
+$("#f-activate").addEventListener("submit", async (e) => {
+  e.preventDefault(); const f = e.currentTarget;
+  if (f.email.value.trim().toLowerCase() !== f.email2.value.trim().toLowerCase()) return note("Los dos correos no son iguales.", "err");
+  if (!same(f)) return note("Las contraseñas no coinciden.", "err");
+  await withBusy(f.querySelector("[type=submit]"), async () => {
+    const { error } = await sb.functions.invoke("activate-account", {
+      body: { code: f.code.value, email: f.email.value.trim(), password: f.password.value },
+    });
+    if (!error) {
+      f.reset();
+      sessionStorage.removeItem("fwt_access");
+      location.replace("index.html?msg=activated");
+      return;
+    }
+    let msg = "No se pudo activar. Revisa tu conexión e inténtalo de nuevo.";
+    try { const d = await error.context.json(); if (d?.message) msg = d.message; } catch { /* sin detalle */ }
+    f.password.value = ""; f.again.value = "";
+    note(msg, "err");
   });
 });

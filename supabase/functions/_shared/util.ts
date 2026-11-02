@@ -56,3 +56,15 @@ export async function requirePermission(req: Request, code: string): Promise<str
   const { data: ok } = await client.rpc("has_permission", { p_code: code });
   return ok === true ? data.user.id : null;
 }
+
+// Igual que requirePermission pero con una función SQL booleana (p. ej. can_register_cards,
+// que exige además ser administrador activo). Devuelve el id del llamador o null.
+export async function requireCheck(req: Request, rpcName: string): Promise<string | null> {
+  const auth = req.headers.get("Authorization");
+  if (!auth?.startsWith("Bearer ")) return null;
+  const client = anonClient(auth);
+  const { data, error } = await client.auth.getUser(auth.slice(7));
+  if (error || !data.user) return null;
+  const { data: ok } = await client.rpc(rpcName);
+  return ok === true ? data.user.id : null;
+}

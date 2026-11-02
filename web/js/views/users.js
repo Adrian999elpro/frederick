@@ -29,7 +29,7 @@ export async function render(root, access) {
   const rows = $("#rows", root);
 
   const rowHTML = (u) => `<tr data-id="${esc(u.id)}">
-    <td>${esc(u.full_name || "—")}</td><td>${esc(u.email)}</td>
+    <td>${esc(u.full_name || "—")}</td><td>${u.activation_pending ? '<span class="badge blue">Pendiente de activar</span>' : esc(u.email)}</td>
     <td>${manage && u.id !== access.id
       ? `<select data-act="role" aria-label="Rol de ${esc(u.email)}">${roles.map((r) => `<option value="${esc(r.name)}" ${r.name === u.role?.name ? "selected" : ""}>${esc(roleLabel(r.name))}</option>`).join("")}</select>`
       : esc(roleLabel(u.role?.name))}</td>
@@ -40,7 +40,7 @@ export async function render(root, access) {
 
   async function load(reset) {
     if (reset) { page = 0; rows.innerHTML = ""; }
-    let query = sb.from("profiles").select("id,email,full_name,status,role:roles(name)")
+    let query = sb.from("profiles").select("id,email,full_name,status,activation_pending,role:roles(name)")
       .order("full_name").order("id").range(page * PAGE, page * PAGE + PAGE);     // PAGE+1 filas: así se sabe si hay más
     const s = q.replace(/[%,()*\\_"']/g, " ").trim();
     if (s) query = query.or(`email.ilike.%${s}%,full_name.ilike.%${s}%`);

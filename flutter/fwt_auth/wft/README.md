@@ -1,17 +1,11 @@
-# wft
+# Frederick Escolar (app Android)
 
-A new Flutter project.
+App Flutter nativa del colegio. Usa Supabase (mismas tablas, permisos y funciones que la web).
 
-## Getting Started
+- `lib/core/`: configuración, tema (claro/oscuro/sistema), acceso a Supabase, puente NFC.
+- `lib/screens/`: inicio de sesión, inicio, carnet, ranking, votar, notas y perfil.
+- `lib/community/`: foro, grupos, mensajes privados con fotos y perfiles de personas.
+- `lib/terminal/`: modo terminal escolar (asistencia, votaciones por tarjeta, registro, consulta).
+- `android/.../MainActivity.kt`: lector NFC y fijación de pantalla.
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Compilación y pruebas: ver `.github/workflows/android.yml` y `ANDROID.md`.

@@ -1,7 +1,6 @@
 // Shell de la aplicación FWT: navegación por permisos, buscador rápido, inicio y carga diferida de cada sección.
 import { CONFIG, requireAccess, can, logout, $, $$, esc, showError } from "./core.js?v=20261018-community";
 import { profilePhotoUrl } from "./profile-photo.js?v=20261018-community";
-import { setupTerminal } from "./terminal.js?v=20261031-app-admin-card";
 import { autoEnhanceSelects, initTheme, routeBar } from "./ui.js?v=20261018-community";
 
 const VIEWS = [
@@ -13,41 +12,36 @@ const VIEWS = [
   { id: "ranking",       title: "🏆 Ranking Escolar",       permission: "ranking.read",       load: () => import("./views/ranking.js?v=20261018-community") },
   { id: "grades",        title: "📊 Calificaciones",        permission: "grades.read",        load: () => import("./views/grades.js?v=20261018-community") },
   { id: "subjects",      title: "📚 Materias y Docentes",   permission: "grades.read",        load: () => import("./views/subjects.js?v=20261018-community") },
-  { id: "cards",         title: "💳 Tarjetas NFC",          permission: "nfc.manage",         load: () => import("./views/cards.js?v=20261031-app-admin-card") },
-  { id: "attendance", title: "📲 Registro de asistencia", load: () => import("./views/attendance.js?v=20261018-community") },
-  { id: "council", title: "🗳️ Consejo estudiantil", load: () => import("./views/polls.js?v=20261018-community") },
-  { id: "custom-polls", title: "🗳️ Votaciones personalizadas", load: () => import("./views/polls.js?v=20261018-community") },
-  { id: "manage-polls", title: "🛠️ Administrar votaciones", permission: "polls.manage", load: () => import("./views/polls.js?v=20261018-community") },
+  { id: "cards",         title: "💳 Tarjetas NFC",          permission: "nfc.manage",         load: () => import("./views/cards.js?v=20261102-card-directory") },
+  { id: "council", title: "🗳️ Consejo estudiantil", load: () => import("./views/polls.js?v=20261102-cards") },
+  { id: "custom-polls", title: "🗳️ Votaciones personalizadas", load: () => import("./views/polls.js?v=20261102-cards") },
+  { id: "manage-polls", title: "🛠️ Administrar votaciones", permission: "polls.manage", load: () => import("./views/polls.js?v=20261102-cards") },
   { id: "applications", title: "📝 Postulaciones", load: () => import("./views/applications.js?v=20261018-community") },
-  { id: "card-registration", title: "💳 Registrar tarjetas", permission: "terminal.operate", load: () => import("./views/card-registration.js?v=20261018-community") },
-  { id: "kiosk-profile", title: "👤 Consulta con tarjeta", permission: "terminal.operate", load: () => import("./views/kiosk-profile.js?v=20261018-community") },
-  { id: "users",         title: "👥 Usuarios",              permission: "users.read",         load: () => import("./views/users.js?v=20261018-community") },
+  { id: "users",         title: "👥 Usuarios",              permission: "users.read",         load: () => import("./views/users.js?v=20261102-cards") },
   { id: "roles",         title: "🛡️ Roles y Permisos",     permission: "roles.manage",       load: () => import("./views/roles.js?v=20261018-community") },
   { id: "settings",      title: "⚙️ Ajustes",              permission: "settings.manage",    load: () => import("./views/settings.js?v=20261018-community") },
   { id: "audit",         title: "📜 Auditoría",             permission: "audit.read",         load: () => import("./views/audit.js?v=20261018-community") },
-  { id: "terminal-activity", title: "📟 Actividad del terminal", permission: "users.manage", load: () => import("./views/terminal-activity.js?v=20261101-terminal-activity") },
-  { id: "profile", title: "🙂 Mi perfil", load: () => import("./views/profile-editor.js?v=20261018-community") },
+  { id: "terminal-activity", title: "📟 Actividad del terminal", permission: "users.manage", load: () => import("./views/terminal-activity.js?v=20261102-pin") },
+  { id: "profile", title: "🙂 Mi perfil", load: () => import("./views/profile-editor.js?v=20261102-cards") },
   { id: "privacy", title: "🔒 Privacidad", load: () => import("./views/privacy.js?v=20261018-community") },
-  { id: "security", title: "🔑 Seguridad", load: () => import("./views/security.js?v=20261018-community") },
+  { id: "security", title: "🔑 Seguridad", load: () => import("./views/security.js?v=20261102-cards") },
   { id: "community", title: "🤝 Comunidad", load: () => import("./views/community.js?v=20261018-community") },
-  { id: "my-card", title: "🪪 Mi tarjeta y curso", load: () => import("./views/my-card.js?v=20261018-community") },
 ];
 
 const HELP = {
   forum: "Conversa y comparte fotos con el colegio.", groups: "Crea grupos y participa con tus compañeros.", messages: "Habla en privado con otra persona.",
-  attendance: "Registra la asistencia acercando una tarjeta.", council: "Consulta las listas y vota con tu tarjeta.",
+  council: "Consulta las listas y los resultados del consejo.",
   "custom-polls": "Participa en las decisiones del colegio.", "manage-polls": "Define motivos, tiempos y resultados de votaciones.",
-  applications: "Presenta tu plan o revisa postulaciones.", "card-registration": "Lee una tarjeta y vincúlala a una cuenta.", "kiosk-profile": "Consulta tus notas con tu tarjeta personal.",
+  applications: "Presenta tu plan o revisa postulaciones.",
   privacy: "Elige quién ve tu perfil y tus calificaciones.",
   security: "Cambia tu contraseña de acceso.",
   community: "Conoce los perfiles compartidos en el colegio.",
-  "my-card": "Completa tus datos y solicita vincular tu tarjeta.",
   profile: "Tu foto, tus datos y las especialidades que te interesan.",
   announcements: "Lee los avisos y las actividades del colegio.",
   grades: "Consulta las notas del año lectivo.",
   subjects: "Encuentra tus materias y docentes.",
   ranking: "Conoce a los estudiantes destacados.",
-  cards: "Asigna y revisa las tarjetas del colegio.",
+  cards: "Mira quién tiene tarjeta y bloquea las perdidas. Las tarjetas se registran en la app del terminal.",
   users: "Gestiona las cuentas de estudiantes y personal.",
   roles: "Define qué puede hacer cada rol.",
   settings: "Configura el acceso a la plataforma.",
@@ -56,9 +50,9 @@ const HELP = {
 };
 const GROUPS = [
   ["Conversaciones", ["forum", "groups", "messages"]],
-  ["Lo principal", ["attendance", "council", "card-registration", "announcements", "custom-polls"]],
-  ["Mi cuenta", ["profile", "privacy", "security", "my-card"]],
-  ["Mi colegio", ["grades", "subjects", "ranking", "community", "applications", "kiosk-profile"]],
+  ["Lo principal", ["council", "announcements", "custom-polls"]],
+  ["Mi cuenta", ["profile", "privacy", "security"]],
+  ["Mi colegio", ["grades", "subjects", "ranking", "community", "applications"]],
   ["Administración", ["cards", "manage-polls", "users", "roles", "settings", "audit", "terminal-activity"]],
 ];
 const ROLE_NAMES = { admin: "Administrador", rector: "Rector", estudiante: "Estudiante", docente: "Docente", encargado_consejo: "Encargado del consejo", usuario: "Usuario" };
@@ -105,7 +99,6 @@ function boot(access) {
 
   // Con contraseña temporal solo se permite cambiarla.
   const allowed = VIEWS.filter((v) => access.must_change_password ? v.id === "security" : (!v.permission || can(access, v.permission)));
-  const terminal = access.must_change_password ? null : setupTerminal(access);
   const groups = GROUPS.map(([title, ids], gi) => ({ title, gi, views: ids.map((id) => allowed.find((v) => v.id === id)).filter(Boolean) })).filter((g) => g.views.length);
   const groupOf = (id) => groups.find((g) => g.views.some((v) => v.id === id));
 
@@ -188,8 +181,8 @@ function boot(access) {
   function renderHome(main) {
     const first = esc((access.full_name || "bienvenido").split(" ")[0]);
     const prefer = access.role === "estudiante"
-      ? ["announcements", "grades", "ranking", "council", "forum", "my-card"]
-      : ["attendance", "announcements", "manage-polls", "council", "users", "cards", "forum"];
+      ? ["announcements", "grades", "ranking", "council", "forum", "community"]
+      : ["announcements", "manage-polls", "council", "users", "cards", "forum"];
     const quick = prefer.filter(has).slice(0, 4).map((id) => allowed.find((v) => v.id === id));
     const fact = FUN_FACTS[Math.floor(Date.now() / 86_400_000) % FUN_FACTS.length];
     const rawDate = new Date().toLocaleDateString("es-EC", { weekday: "long", day: "numeric", month: "long" });
@@ -225,7 +218,6 @@ function boot(access) {
   async function route() {
     const mine = ++token;
     const requested = location.hash.slice(1).split("/")[0] || "home";
-    if (terminal && !terminal.allows(requested)) { location.replace(`#${terminal.fallback()}`); return; }
     const view = allowed.find((v) => v.id === requested) ?? allowed.find((v) => v.id === "home") ?? allowed[0];
     setDrawer(false);
     routeBar();
@@ -245,7 +237,7 @@ function boot(access) {
       const host = document.createElement("div");
       host.className = "view-enter";
       main.replaceChildren(host);
-      await mod.render(host, { ...access, terminal: terminal?.active() || false });
+      await mod.render(host, { ...access, terminal: false });
       if (mine === token) main.focus({ preventScroll: true });
     } catch (err) {
       if (mine === token) {

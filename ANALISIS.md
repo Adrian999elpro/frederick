@@ -34,7 +34,7 @@ La migración revisada está en `supabase/migrations/20261018062607_hosting_acce
 
 ## Límites de esta revisión
 
-El código Android no está listo para distribuir como APK: `flutter/fwt_auth` contiene el módulo real y una entrada de ejemplo, pero `flutter/fwt_auth/wft` todavía es la demostración del contador de Flutter. El ejemplo conserva marcadores de URL/clave y no tiene proyecto ejecutable independiente. Publicar la web no compila ni conecta automáticamente esa app.
+Nota del 31 de octubre de 2026: esta sección describía una versión anterior. La app Android actual está en `flutter/fwt_auth/wft/` (Flutter nativo, sin WebView). El código previo se conserva en `flutter/legacy/` solo como referencia. La administración (usuarios, roles, importación de notas, auditoría) y la comunidad (foros y mensajes) siguen disponibles únicamente en la web.
 
 No se ha realizado una auditoría exhaustiva ni una prueba completa con usuarios docentes/estudiantes, notas o votos reales. No se conoce la contraseña de la cuenta existente; las verificaciones públicas y de permisos no sustituyen las pruebas funcionales autenticadas. El uso de UID NFC identifica tarjetas, pero no prueba resistencia a su clonación.
 

@@ -12,7 +12,7 @@ begin
  (b,'qa-'||b||'@example.invalid','{"provider":"email"}','{"full_name":"QA Voter B"}',now()),
  (staff,'qa-'||staff||'@example.invalid','{"provider":"email"}','{"full_name":"QA Council Staff"}',now());
  update public.profiles set role_id=(select id from public.roles where name='encargado_consejo') where id=staff;
- insert into public.nfc_cards(profile_id,card_uid,card_type,active) values(a,uid_a,'estudiante',true),(b,uid_b,'estudiante',true),(staff,uid_staff,'admin',true);
+ insert into public.nfc_cards(profile_id,card_uid,card_type,active) values(a,uid_a,'estudiante',true),(b,uid_b,'estudiante',true),(staff,uid_staff,'docente',true);
  perform set_config('request.jwt.claims',jsonb_build_object('sub',staff,'role','authenticated')::text,true);
  set local role authenticated;
  c:=public.create_school_poll('council','QA Council','Plan del consejo escolar',60,true);
@@ -100,6 +100,7 @@ begin
  if result->>'id'<>a::text or result ? 'email' or result ? 'phone' then raise exception 'terminal profile unsafe';end if;
  token:=public.authorize_terminal_card(uid_staff);
  reset role;
+ update public.terminal_unlock_tickets set pin_ok=true where id=token; -- el PIN se prueba en card-registration
  set local role anon;
  if not public.consume_terminal_unlock(token) then raise exception 'authorized card token failed';end if;
  if public.consume_terminal_unlock(token) or public.consume_terminal_unlock(gen_random_uuid()) then raise exception 'unlock token reusable';end if;
