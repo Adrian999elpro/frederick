@@ -182,7 +182,7 @@ class _TerminalShellState extends State<TerminalShell> {
         return false;
       }
       if (!mounted) return false;
-      return askAdminPin(context, result);
+      return await askAdminPin(context, result);
     } catch (e) {
       if (mounted) snack(context, friendlyError(e, 'No se pudo verificar la tarjeta. Revisa la conexión.'), error: true);
       return false;

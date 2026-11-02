@@ -50,14 +50,23 @@ const _sessionKey = 'fwt_session';
 
 /// Guarda la sesión en el almacén seguro de Android (Keystore).
 class SecureLocalStorage extends LocalStorage {
-  SecureLocalStorage()
-      : super(
-          initialize: () async {},
-          hasAccessToken: () => _secure.containsKey(key: _sessionKey),
-          accessToken: () => _secure.read(key: _sessionKey),
-          removePersistedSession: () => _secure.delete(key: _sessionKey),
-          persistSession: (value) => _secure.write(key: _sessionKey, value: value),
-        );
+  SecureLocalStorage();
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<bool> hasAccessToken() => _secure.containsKey(key: _sessionKey);
+
+  @override
+  Future<String?> accessToken() => _secure.read(key: _sessionKey);
+
+  @override
+  Future<void> removePersistedSession() => _secure.delete(key: _sessionKey);
+
+  @override
+  Future<void> persistSession(String persistSessionString) =>
+      _secure.write(key: _sessionKey, value: persistSessionString);
 }
 
 /// Punto único de acceso al servidor. La autorización real la exigen RLS y las

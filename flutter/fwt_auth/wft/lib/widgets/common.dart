@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../core/config.dart';
 import '../core/errors.dart';
 import '../core/nfc.dart';
 import '../core/theme.dart';
